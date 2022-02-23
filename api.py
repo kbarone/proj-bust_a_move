@@ -21,3 +21,11 @@ response = requests.get(mashvisor3, headers=headers)
 
 response.text
 
+mashvisor4 = "https://api.mashvisor.com/v1.1/client/city/neighborhoods/{state}/{city}" # this is to get the neighborhoods list to
+# use in the API calls that involve neighborhood
+
+mashvisor4 = "https://api.mashvisor.com/v1.1/client/city/neighborhoods/CA/Los%20Angeles" 
+
+mashvisor5 = "https://api.mashvisor.com/v1.1/client/neighborhood/7877/historical/airbnb?average_by=revenue&state=CA"
+
+mashvisor6 = "https://api.mashvisor.com/v1.1/client/neighborhood/7877/historical/airbnb?&state=CA"
