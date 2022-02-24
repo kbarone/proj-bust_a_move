@@ -29,3 +29,7 @@ mashvisor4 = "https://api.mashvisor.com/v1.1/client/city/neighborhoods/CA/Los%20
 mashvisor5 = "https://api.mashvisor.com/v1.1/client/neighborhood/7877/historical/airbnb?average_by=revenue&state=CA"
 
 mashvisor6 = "https://api.mashvisor.com/v1.1/client/neighborhood/7877/historical/airbnb?&state=CA"
+
+census1 = "https://api.census.gov/data/2019/acs/acs1?get=NAME,B01001_001E&for=county:*&in=state:*&key=2a3bf1bd5b110158358335717d5d067b0e377810"
+
+census2 = "https://api.census.gov/data/timeseries/poverty/saipe?get=SAEMHI_PT,NAME&for=county:*&in=state:*&time=2020&key=2a3bf1bd5b110158358335717d5d067b0e377810"
