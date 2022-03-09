@@ -6,7 +6,6 @@ import plotly.graph_objects as go
 def clean_mobility_data(): 
     """
     
-    
     """
     mobility = pd.read_csv("google_mobility_county.csv", dtype= {"countyfips": str})
     mobility = mobility.replace(".", None)
