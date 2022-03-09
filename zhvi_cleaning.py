@@ -72,3 +72,16 @@ for idx, row in zhvi_county_inc_pop.iterrows():
     zhvi_county_inc_pop.at[idx, 'text_2yrs'] = 'County:' + row["RegionName"] + '<br>' + 'State:' + row["State"] + \
     '<br>' + '2019-21 increase:' + str(round(row["2021_2yr_increase"], 3)) + '<br>' + 'Med_Inc:' + str(row["med_inc"]) + \
         '<br>' + 'Pop_2020:' + str(row["POPESTIMATE2020"])
+
+#--------MOBILITY---------------#
+
+mobility = pd.read_csv("google_mobility_county.csv", dtype= {"countyfips": str})
+mobility = mobility.replace(".", None)
+#mobility = mobility.replace(0, None)
+mobility[["gps_retail_and_recreation", "gps_grocery_and_pharmacy",
+     "gps_parks", "gps_transit_stations", "gps_workplaces","gps_residential", "gps_away_from_home"]] \
+         = mobility[["gps_retail_and_recreation", "gps_grocery_and_pharmacy",
+     "gps_parks", "gps_transit_stations", "gps_workplaces","gps_residential", "gps_away_from_home"]].apply(pd.to_numeric)
+
+mobility["countyfips"]= mobility["countyfips"].str.zfill(5)
+mobility["date"] = pd.to_datetime(mobility[["year", "month", "day"]])
