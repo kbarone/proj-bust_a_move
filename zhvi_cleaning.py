@@ -1,0 +1,74 @@
+'''
+Create master dataset for house price data at the county level
+'''
+
+import json
+from urllib.request import urlopen
+import pandas as pd
+
+# Load county shapefiles
+from urllib.request import urlopen
+import json
+with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
+    counties = json.load(response)
+
+
+# Load datasets
+
+# Zillow house prices
+zhvi = pd.read_csv("zillow_home_value_index_county.csv", index_col="RegionID")
+
+# Median income
+med_inc = pd.read_csv("census_2020_median_inc.csv", dtype={'state': object, 'fips_county': object})
+
+# Zillow RegionID to County FIPS code crosswalk
+crosswalk = pd.read_csv("CountyCrossWalk_Zillow.csv", encoding = "ISO-8859-1", index_col="CountyRegionID_Zillow", dtype={"FIPS" : object})
+
+# Population estimates
+population = pd.read_csv("county_population.csv", encoding = "ISO-8859-1", dtype={"STATE" : object, "COUNTY" : object})
+
+
+population["STATE"] = population["STATE"].str.zfill(2)
+population["COUNTY"] = population["COUNTY"].str.zfill(3)
+population["COUNTY_FIPS"] = population["STATE"] + population["COUNTY"]
+
+med_inc["state"] = med_inc['state'].str.zfill(2)
+med_inc['County Code'] = med_inc["state"] + med_inc["fips_county"]
+
+years = zhvi.loc[:, "2019-01-31":"2021-12-31":1]
+
+regions = zhvi.loc[:, "SizeRank":"MunicipalCodeFIPS":1]
+
+zhvi2 = regions.join(years)
+
+zhvi2["2019_average"] = zhvi2.loc[:, "2019-01-31":"2019-12-31": 1].mean(axis=1)
+zhvi2["2020_average"] = zhvi2.loc[:, "2020-01-31":"2020-12-31": 1].mean(axis=1)
+zhvi2["2021_average"] = zhvi2.loc[:, "2021-01-31":"2021-12-31": 1].mean(axis=1)
+zhvi2["2020_increase"] = ((zhvi2["2020_average"] - zhvi2["2019_average"])/zhvi2["2019_average"])*100
+zhvi2["2021_increase"] = ((zhvi2["2021_average"] - zhvi2["2020_average"])/zhvi2["2020_average"])*100
+zhvi2["2021_2yr_increase"] = ((zhvi2["2021_average"] - zhvi2["2019_average"])/zhvi2["2019_average"])*100
+
+zhvi2["text_20"] = " "
+zhvi2["text_21"] = " "
+zhvi2["text_2yrs"] = " "
+
+zhvi2.dropna()
+
+zhvi_county = pd.merge(zhvi2, crosswalk, left_index=True, right_index=True)
+zhvi_county["FIPS"] = zhvi_county["FIPS"].str.zfill(5)
+zhvi_county_inc = pd.merge(zhvi_county, med_inc, left_on="FIPS", right_on="County Code")
+zhvi_county_inc_pop = pd.merge(zhvi_county_inc, population, left_on="FIPS", right_on="COUNTY_FIPS")
+
+# Format text for hovering
+for idx, row in zhvi_county_inc_pop.iterrows():
+    zhvi_county_inc_pop.at[idx, 'text_20'] = 'County:' + row["RegionName"] + '<br>' + 'State:' + row["State"] + \
+    '<br>' + '2019-20 increase:' + str(round(row["2020_increase"], 3)) + '<br>' + 'Med_Inc:' + str(row["med_inc"]) + \
+        '<br>' + 'Pop_2019:' + str(row["POPESTIMATE2019"])
+    
+    zhvi_county_inc_pop.at[idx, 'text_21'] = 'County:' + row["RegionName"] + '<br>' + 'State:' + row["State"] + \
+    '<br>' + '2020-21 increase:' + str(round(row["2021_increase"], 3)) + '<br>' + 'Med_Inc:' + str(row["med_inc"]) + \
+        '<br>' + 'Pop_2020:' + str(row["POPESTIMATE2020"])
+    
+    zhvi_county_inc_pop.at[idx, 'text_2yrs'] = 'County:' + row["RegionName"] + '<br>' + 'State:' + row["State"] + \
+    '<br>' + '2019-21 increase:' + str(round(row["2021_2yr_increase"], 3)) + '<br>' + 'Med_Inc:' + str(row["med_inc"]) + \
+        '<br>' + 'Pop_2020:' + str(row["POPESTIMATE2020"])
