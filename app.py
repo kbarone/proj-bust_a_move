@@ -21,6 +21,7 @@ with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-c
     counties = json.load(response)
 
 exec(open("zhvi_cleaning.py").read())
+natl_parks = pd.read_csv("natl_parks.csv")
 
 # Figure 1
 fig = go.Figure(go.Choroplethmapbox(geojson=counties, locations=zhvi_county_inc_pop["FIPS"], z=zhvi_county_inc_pop["2021_2yr_increase"],
@@ -30,6 +31,15 @@ fig.update_layout(mapbox_style="carto-positron",
                   mapbox_zoom=3, mapbox_center = {"lat": 37.0902, "lon": -95.7129})
 fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
 fig.update_layout(clickmode='event+select')
+fig.add_trace(go.Scattermapbox(
+    lat= natl_parks['latitude'],
+    lon= natl_parks['longitude'],
+    mode ='markers',
+    marker=go.scattermapbox.Marker(
+        size=6,
+        color = 'black'),
+    text = natl_parks["park_name"]))
+
 
 
 
