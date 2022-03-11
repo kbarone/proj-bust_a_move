@@ -19,7 +19,7 @@ with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-c
 zhvi = pd.read_csv("zillow_home_value_index_county.csv", index_col="RegionID")
 
 # Median income
-med_inc = pd.read_csv("census_2020_median_inc.csv", dtype={'state': object, 'fips_county': object})
+med_inc = pd.read_csv("census_2020_median_inc_and_poverty.csv", dtype={'state': object, 'fips_county': object})
 
 # Zillow RegionID to County FIPS code crosswalk
 crosswalk = pd.read_csv("CountyCrossWalk_Zillow.csv", encoding = "ISO-8859-1", index_col="CountyRegionID_Zillow", dtype={"FIPS" : object})
