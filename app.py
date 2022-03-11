@@ -29,6 +29,7 @@ fig = go.Figure(go.Choroplethmapbox(geojson=counties, locations=zhvi_county_inc_
 fig.update_layout(mapbox_style="carto-positron",
                   mapbox_zoom=3, mapbox_center = {"lat": 37.0902, "lon": -95.7129})
 fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+fig.update_layout(clickmode='event+select')
 
 
 
@@ -37,7 +38,7 @@ app.layout = html.Div([
     html.Div([
         dcc.Graph(
             id='zhvf',
-            hoverData={'points': [{'location': 'Japan'}]},
+            clickData={'points': [{'location': 'Japan'}]},
             figure=fig
     )], style={'width': '60%','display': 'inline-block'}),
 
@@ -48,23 +49,23 @@ app.layout = html.Div([
 
     html.Div([
             dcc.Markdown(),
-            html.Pre(id='hover-data', style=styles['pre'])
+            html.Pre(id='click-data', style=styles['pre'])
     ], className='three columns'),
 ])
 
 @app.callback(
-    Output('hover-data', 'children'),
-    [Input('zhvf', 'hoverData')])
-def display_hover_data(hoverData):
-    return json.dumps(hoverData['points'][0]['location'], indent=2)
+    Output('click-data', 'children'),
+    [Input('zhvf', 'clickData')])
+def display_click_data(clickData):
+    return json.dumps(clickData['points'][0]['location'], indent=2)
 
 
 @app.callback(
     Output('mobility', 'figure'),
-    [Input('zhvf', 'hoverData')])
-def update_time_series(hoverData):
+    [Input('zhvf', 'clickData')])
+def update_time_series(clickData):
     # Figure 2
-    county = hoverData['points'][0]['location']
+    county = clickData['points'][0]['location']
     fig2 = go.Figure()
 
     fig2.add_trace(go.Scatter(
