@@ -138,6 +138,11 @@ for p in percs:
     df[f'perc_{p}'] = df[p] / df['total']
 df['fips'] = df['GEO_ID'].str[-5:]
 
+df_unpivoted = df.melt(id_vars=['GEO_ID', 'County','fips'], var_name='race', value_name='perc_total')
+df_unpivoted.head()
+df_race = df_unpivoted[df_unpivoted['race']!= 'total' & df_unpivoted['race'].str.startswith('perc')]
+df_race = df_race[df_race['race'].str.contains("perc")]
+
 #df.to_csv("race_data_clean.csv")
 
 
