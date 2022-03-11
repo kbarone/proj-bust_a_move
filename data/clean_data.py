@@ -123,6 +123,21 @@ df = df[df['is_na']==False]
 df = df.loc[:, ~df.columns.str.startswith('moe')]
 df = df.iloc[:,:-1]
 
+df.fillna(0)
+df = df.drop('two_more_inc_other',1)
+df = df.drop('two_more_excl_other_three', 1)
+
+cols_to_numeric = ['total', 'white', 'blk_af_am', 'am_indian_alas_nat', 'asian',
+       'nat_haw_pac_island', 'other', 'two_or_more']
+for col in cols_to_numeric:
+    df[col] = pd.to_numeric(df[col])
+
+percs = ['white', 'blk_af_am', 'am_indian_alas_nat', 'asian',
+       'nat_haw_pac_island', 'other', 'two_or_more']
+for p in percs:
+    df[f'perc_{p}'] = df[p] / df['total']
+df['fips'] = df['GEO_ID'].str[-5:]
+
 #df.to_csv("race_data_clean.csv")
 
 
