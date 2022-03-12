@@ -154,6 +154,11 @@ for idx, row in zhvi_county_inc_pop.iterrows():
     '<br>' + '2019-21 increase:' + str(round(row["2021_2yr_increase"], 3)) + '<br>' + 'Med_Inc:' + str(row["med_inc"]) + \
         '<br>' + 'Pop_2020:' + str(row["POPESTIMATE2020"])
 
+cols_to_keep = ['RegionName','State', 'Metro','FIPS','2021_2yr_increase','text_2yrs','text_21','med_inc', 'pov_rate','POPESTIMATE2020']
+zhvi_county_inc_pop = zhvi_county_inc_pop[cols_to_keep]
+
+pd.to_csv("zhvi_county_inc_pop_clean.csv")
+
 
 
 
