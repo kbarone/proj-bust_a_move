@@ -75,18 +75,6 @@ for idx, row in zhvi_county_inc_pop.iterrows():
 
 #--------MOBILITY---------------#
 
-'''
-mobility = pd.read_csv("google_mobility_county.csv", dtype= {"countyfips": str})
-mobility = mobility.replace(".", None)
-#mobility = mobility.replace(0, None)
-mobility[["gps_retail_and_recreation", "gps_grocery_and_pharmacy",
-     "gps_parks", "gps_transit_stations", "gps_workplaces","gps_residential", "gps_away_from_home"]] \
-         = mobility[["gps_retail_and_recreation", "gps_grocery_and_pharmacy", "gps_parks", \
-             "gps_transit_stations", "gps_workplaces","gps_residential", "gps_away_from_home"]].apply(pd.to_numeric)
-
-mobility["countyfips"]= mobility["countyfips"].str.zfill(5)
-mobility["date"] = pd.to_datetime(mobility[["year", "month", "day"]])
-'''
 def clean_mobility_data(): 
     """
     

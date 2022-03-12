@@ -13,8 +13,8 @@ with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-c
 # Zillow house prices
 zhvi = pd.read_csv("zillow_home_value_index_county.csv", index_col="RegionID")
 
-# Median income
-med_inc = pd.read_csv("census_2020_median_inc.csv", dtype={'state': object, 'fips_county': object})
+# Median income and poverty rate
+med_inc_pov = pd.read_csv("census_2020_median_inc_and_poverty.csv", dtype={'state': object, 'fips_county': object})
 
 # Zillow RegionID to County FIPS code crosswalk
 crosswalk = pd.read_csv("CountyCrossWalk_Zillow.csv", encoding = "ISO-8859-1", index_col="CountyRegionID_Zillow", dtype={"FIPS" : object})
@@ -22,13 +22,99 @@ crosswalk = pd.read_csv("CountyCrossWalk_Zillow.csv", encoding = "ISO-8859-1", i
 # Population estimates
 population = pd.read_csv("county_population.csv", encoding = "ISO-8859-1", dtype={"STATE" : object, "COUNTY" : object})
 
+# Mobility data
+mobility = pd.read_csv("google_mobility_county.csv", dtype= {"countyfips": str})
 
+# Race data
+race = pd.read_csv("/Users/katybarone/Documents/uchicago/race_by_county.csv")
+
+
+#--------    MOBILITY   ---------------#
+
+
+mobility = mobility.replace(".", None)
+#mobility = mobility.replace(0, None)
+mobility[["gps_retail_and_recreation", "gps_grocery_and_pharmacy",
+     "gps_parks", "gps_transit_stations", "gps_workplaces","gps_residential", "gps_away_from_home"]] \
+         = mobility[["gps_retail_and_recreation", "gps_grocery_and_pharmacy", "gps_parks", \
+             "gps_transit_stations", "gps_workplaces","gps_residential", "gps_away_from_home"]].apply(pd.to_numeric)
+
+mobility["countyfips"]= mobility["countyfips"].str.zfill(5)
+mobility["date"] = pd.to_datetime(mobility[["year", "month", "day"]])
+
+
+mobility.to_csv("google_mobility_clean.csv")
+
+#+++++++++++++++++++++ RACE/ETHNICITY ++++++++++++++++++++++++++
+
+cols = {'NAME':	'County',
+'B02001_001E': 'total',
+'B02001_001M':	'moe_total',
+'B02001_002E': 'white',
+'B02001_002M':	'moe_white',
+'B02001_003E':	'blk_af_am',
+'B02001_003M':	'moe_blk_af_am',
+'B02001_004E':	"am_indian_alas_nat",
+'B02001_004M':	"moe_am_indian_alas_nat",
+'B02001_005E':	"asian",
+'B02001_005M':	"moe_asian",
+'B02001_006E':	"nat_haw_pac_island",
+'B02001_006M':	"moe_nat_haw_pac_island",
+'B02001_007E':	"other",
+'B02001_007M':	"moe_other",
+'B02001_008E':	"two_or_more",
+'B02001_008M':	"moe_two_or_more",
+'B02001_009E':	"two_more_inc_other",
+'B02001_009M':	"moe_two_more_inc_other",
+'B02001_010E':	"two_more_excl_other_three",
+'B02001_010M':	"moe_two_more_excl_other_three"}
+
+race = race.rename(columns = cols)
+race = race.iloc[1:]
+
+cols_to_check = race.columns[:-3]
+race['is_na'] = race[cols_to_check].isnull().apply(lambda x: all(x), axis=1) 
+race = race[race['is_na']==False]
+race = race.loc[:, ~race.columns.str.startswith('moe')]
+race = race.iloc[:,:-1]
+
+race.fillna(0)
+race = race.drop('two_more_inc_other',1)
+race = race.drop('two_more_excl_other_three', 1)
+
+cols_to_numeric = ['total', 'white', 'blk_af_am', 'am_indian_alas_nat', 'asian',
+       'nat_haw_pac_island', 'other', 'two_or_more']
+for col in cols_to_numeric:
+    race[col] = pd.to_numeric(df[col])
+
+percs = ['white', 'blk_af_am', 'am_indian_alas_nat', 'asian',
+       'nat_haw_pac_island', 'other', 'two_or_more']
+for p in percs:
+    race[f'perc_{p}'] = race[p] / race['total']
+race['fips'] = race['GEO_ID'].str[-5:]
+
+df_unpivoted = race.melt(id_vars=['GEO_ID', 'County','fips'], var_name='race', value_name='perc_total')
+df_unpivoted.head()
+df_race = df_unpivoted[df_unpivoted['race']!= 'total']
+df_race = df_race[df_race['race'].str.contains("perc")]
+
+df_race.to_csv("race_data_clean.csv")
+
+
+#++++++++   POPULATION   ++++++++++++++++++++
 population["STATE"] = population["STATE"].str.zfill(2)
 population["COUNTY"] = population["COUNTY"].str.zfill(3)
 population["COUNTY_FIPS"] = population["STATE"] + population["COUNTY"]
 
+#++++++++++ MEDIAN INCOME AND POVERTY +++++++++++++++++
+
 med_inc["state"] = med_inc['state'].str.zfill(2)
 med_inc['County Code'] = med_inc["state"] + med_inc["fips_county"]
+pov["county"] = pov['state'].str.zfill(3)
+
+pov.to_csv("data/median_inc_poverty_2020_clean.csv")
+
+#++++++++++ ZILLOW HOUSING +++++++++++++++++++
 
 years = zhvi.loc[:, "2019-01-31":"2021-12-31":1]
 
@@ -68,81 +154,8 @@ for idx, row in zhvi_county_inc_pop.iterrows():
     '<br>' + '2019-21 increase:' + str(round(row["2021_2yr_increase"], 3)) + '<br>' + 'Med_Inc:' + str(row["med_inc"]) + \
         '<br>' + 'Pop_2020:' + str(row["POPESTIMATE2020"])
 
-#--------MOBILITY---------------#
-
-mobility = pd.read_csv("google_mobility_county.csv", dtype= {"countyfips": str})
-mobility = mobility.replace(".", None)
-#mobility = mobility.replace(0, None)
-mobility[["gps_retail_and_recreation", "gps_grocery_and_pharmacy",
-     "gps_parks", "gps_transit_stations", "gps_workplaces","gps_residential", "gps_away_from_home"]] \
-         = mobility[["gps_retail_and_recreation", "gps_grocery_and_pharmacy", "gps_parks", \
-             "gps_transit_stations", "gps_workplaces","gps_residential", "gps_away_from_home"]].apply(pd.to_numeric)
-
-mobility["countyfips"]= mobility["countyfips"].str.zfill(5)
-mobility["date"] = pd.to_datetime(mobility[["year", "month", "day"]])
-
-
-df.to_csv("google_mobility_clean.csv")
 
 
 
-
-
-# CLEAN RACE/ETHNICITY DATA
-
-df = pd.read_csv("/Users/katybarone/Documents/uchicago/race_by_county.csv")
-
-cols = {'NAME':	'County',
-'B02001_001E': 'total',
-'B02001_001M':	'moe_total',
-'B02001_002E': 'white',
-'B02001_002M':	'moe_white',
-'B02001_003E':	'blk_af_am',
-'B02001_003M':	'moe_blk_af_am',
-'B02001_004E':	"am_indian_alas_nat",
-'B02001_004M':	"moe_am_indian_alas_nat",
-'B02001_005E':	"asian",
-'B02001_005M':	"moe_asian",
-'B02001_006E':	"nat_haw_pac_island",
-'B02001_006M':	"moe_nat_haw_pac_island",
-'B02001_007E':	"other",
-'B02001_007M':	"moe_other",
-'B02001_008E':	"two_or_more",
-'B02001_008M':	"moe_two_or_more",
-'B02001_009E':	"two_more_inc_other",
-'B02001_009M':	"moew_two_more_inc_other",
-'B02001_010E':	"two_more_excl_other_three",
-'B02001_010M':	"moe_two_more_excl_other_three"}
-
-df = df.rename(columns = cols)
-df = df.iloc[1:]
-
-cols_to_check = df.columns[:-3]
-df['is_na'] = df[cols_to_check].isnull().apply(lambda x: all(x), axis=1) 
-df = df[df['is_na']==False]
-df = df.loc[:, ~df.columns.str.startswith('moe')]
-df = df.iloc[:,:-1]
-
-df.fillna(0)
-df = df.drop('two_more_inc_other',1)
-df = df.drop('two_more_excl_other_three', 1)
-
-cols_to_numeric = ['total', 'white', 'blk_af_am', 'am_indian_alas_nat', 'asian',
-       'nat_haw_pac_island', 'other', 'two_or_more']
-for col in cols_to_numeric:
-    df[col] = pd.to_numeric(df[col])
-
-percs = ['white', 'blk_af_am', 'am_indian_alas_nat', 'asian',
-       'nat_haw_pac_island', 'other', 'two_or_more']
-for p in percs:
-    df[f'perc_{p}'] = df[p] / df['total']
-df['fips'] = df['GEO_ID'].str[-5:]
-
-df_unpivoted = df.melt(id_vars=['GEO_ID', 'County','fips'], var_name='race', value_name='perc_total')
-df_unpivoted.head()
-df_race = df_unpivoted[df_unpivoted['race']!= 'total']
-df_race = df_race[df_race['race'].str.contains("perc")]
-
-df.to_csv("race_data_clean.csv")
 
 
