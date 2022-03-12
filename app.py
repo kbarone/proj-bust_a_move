@@ -5,6 +5,8 @@ import json
 from urllib.request import urlopen
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output
+import graph_functions as gf
+
 
 
 
@@ -90,28 +92,54 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
 
     html.Div([
         dcc.Graph(
-            id='mobility',
+            id='mobility_demo',
     )],style={'width': '40%', 'display': 'inline-block'}),
 
     html.Div([
             dcc.Markdown(),
             html.Pre(id='click-data', style=styles['pre'])
     ], className='three columns'),
+
+    html.Div([
+            dcc.Dropdown(
+                ['Mobility','Income'],
+                'Mobility',
+                id='mobility_demo_toggle')
+    ])
+
 ])
+
+def make_side_graph(toggle_val, FIPS):
+    '''
+    Plot side graph based on toggle values
+    '''
+
+    if toggle_val == 'Mobility':
+        return gf.create_mobility_graph(mobility, FIPS)
+    
+    if toggle_val == 'Income':
+        return gf.create_income_graph(zhvi_county_inc_pop, FIPS)
+
 
 @app.callback(
     Output('click-data', 'children'),
-    [Input('zhvf', 'clickData')])
-def display_click_data(clickData):
-    return json.dumps(clickData['points'][0]['location'], indent=2)
+    Input('zhvf', 'clickData'),
+    Input('mobility_demo_toggle', 'value'))
+def display_click_data(clickData, toggle):
+    #return str(toggle)
+    return json.dumps(str(clickData['points'][0]['location'] + " " + toggle), indent=2)
 
 
 @app.callback(
-    Output('mobility', 'figure'),
-    [Input('zhvf', 'clickData')])
-def update_time_series(clickData):
+    Output('mobility_demo', 'figure'),
+    Input('zhvf', 'clickData'),
+    Input('mobility_demo_toggle', 'value'))
+def update_graph_series(clickData, toggle):
     # Figure 2
     county = clickData['points'][0]['location']
+    return make_side_graph(str(toggle), county)
+
+    '''
     fig2 = go.Figure()
 
     fig2.add_trace(go.Scatter(
@@ -151,6 +179,7 @@ def update_time_series(clickData):
     fig2.update_layout(title="Percent change in GPS activity by Category")
 
     return fig2
+    '''
 
 
 if __name__ == '__main__':
