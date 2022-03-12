@@ -73,22 +73,26 @@ def create_mobility_graph(mobility, zhvi_county_inc_pop, FIPS):
     fig.add_trace(go.Scatter(
         x= mobility[mobility["countyfips"] == FIPS]["date"],
         y= mobility[mobility["countyfips"] == FIPS]["gps_parks"],
-        name = 'Mobility near parks'
+        name = 'Mobility near parks',
+        connectgaps = True
     ))
     fig.add_trace(go.Scatter(
         x= mobility[mobility["countyfips"] == FIPS]["date"],
         y= mobility[mobility["countyfips"] == FIPS]["gps_retail_and_recreation"],
-        name = 'Mobility near retail and recreation'
+        name = 'Mobility near retail and recreation',
+        connectgaps = True
     ))
     fig.add_trace(go.Scatter(
         x= mobility[mobility["countyfips"] == FIPS]["date"],
         y= mobility[mobility["countyfips"] == FIPS]["gps_grocery_and_pharmacy"],
-        name = 'Mobility -grocery and pharmacy'
+        name = 'Mobility -grocery and pharmacy',
+        connectgaps = True
     ))
     fig.add_trace(go.Scatter(
         x= mobility[mobility["countyfips"] == FIPS]["date"],
         y= mobility[mobility["countyfips"] == FIPS]["gps_residential"],
-        name = 'Mobility -residential'
+        name = 'Mobility -residential',
+        connectgaps = True
     ))
 
     fig.add_annotation(x=0, y=1.10, xanchor='left', yanchor='bottom',
