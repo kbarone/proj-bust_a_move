@@ -9,6 +9,8 @@ import pandas as pd
 # Load county shapefiles
 from urllib.request import urlopen
 import json
+
+# Load geojson
 with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
     counties = json.load(response)
 
@@ -27,6 +29,8 @@ crosswalk = pd.read_csv("CountyCrossWalk_Zillow.csv", encoding = "ISO-8859-1", i
 # Population estimates
 population = pd.read_csv("county_population.csv", encoding = "ISO-8859-1", dtype={"STATE" : object, "COUNTY" : object})
 
+# Parks
+natl_parks = pd.read_csv("natl_parks.csv")
 
 population["STATE"] = population["STATE"].str.zfill(2)
 population["COUNTY"] = population["COUNTY"].str.zfill(3)

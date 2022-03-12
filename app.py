@@ -1,13 +1,6 @@
 from dash import Dash, html, dcc
-import plotly.express as px
-import pandas as pd
-import json
-from urllib.request import urlopen
-import plotly.graph_objects as go
 from dash.dependencies import Input, Output
 import graph_functions as gf
-
-
 
 
 app = Dash(__name__)
@@ -24,44 +17,10 @@ styles = {
     }
 }
 
-with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
-    counties = json.load(response)
-
+# Running cleaning stuff
 exec(open("zhvi_cleaning.py").read())
-natl_parks = pd.read_csv("natl_parks.csv")
 
-# Figure 1
-fig = go.Figure(go.Choroplethmapbox(geojson=counties, locations=zhvi_county_inc_pop["FIPS"], z=zhvi_county_inc_pop["2021_2yr_increase"],
-                                    colorscale="Jet", zmin=-17, zmax=58, text=zhvi_county_inc_pop["text_2yrs"], 
-                                    marker_opacity=0.5, marker_line_width=0))
-fig.update_layout(mapbox_style="carto-positron", # style options: "basic", "streets", "outdoors", 
-                # "dark", "satellite", or "satellite-streets","light"
-                # "open-street-map", "carto-positron", 
-                # "carto-darkmatter", "stamen-terrain", 
-                # "stamen-toner" or "stamen-watercolor"
-                  mapbox_zoom=3, mapbox_center = {"lat": 37.0902, "lon": -95.7129})
-fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-fig.update_layout(
-    title="Changes in Housing Prices from 2019 to 2021")
-fig.add_trace(go.Scattermapbox(
-    lat= natl_parks['latitude'],
-    lon= natl_parks['longitude'],
-    mode ='markers',
-    marker=go.scattermapbox.Marker(
-        size=6,
-        color = 'black'),
-    text = natl_parks["park_name"], hoverinfo = 'skip'))
-fig.update_layout(title={
-        'text': "Percent Change in Housing Prices from 2019 to 2021",
-        'y': 0.96,
-        'x':0.4,
-        'xanchor': 'center',
-        'yanchor': 'top'})
-fig.update_layout(clickmode='event+select')
-
-
-
-
+#----------------APP STARTS HERE---------------------#
 app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
 
     html.H1(
@@ -78,7 +37,8 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     }),
 
 
-    html.Div(children='Click on a county on the map to view mobility and demographic data.', style={
+    html.Div(children='Click on a county on the map to view mobility and demographic data.',
+    style={
         'textAlign': 'center',
         'color': colors['text']
     }),
@@ -87,25 +47,21 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
         dcc.Graph(
             id='zhvf',
             clickData={'points': [{'location': '30029'}]},
-            figure=fig
-    )], style={'width': '60%','display': 'inline-block'}),
+            figure=gf.create_chloropleth(counties, zhvi_county_inc_pop, natl_parks))], 
+            style={'width': '55%','display': 'inline-block'}),
 
-    html.Div([
-        dcc.Graph(
-            id='mobility_demo',
-    )],style={'width': '40%', 'display': 'inline-block'}),
-
-    html.Div([
-            dcc.Markdown(),
-            html.Pre(id='click-data', style=styles['pre'])
-    ], className='three columns'),
+    html.Div([dcc.Graph(
+                id='mobility_demo',)],
+                style={'width': '45%','display': 'inline-block'}),
+    
 
     html.Div([
             dcc.Dropdown(
-                ['Mobility','Income'],
-                'Mobility',
-                id='mobility_demo_toggle')
-    ])
+                ['Percent change in GPS activity by Category',
+                'Distribution of Median Income and Poverty rate'],
+                'Percent change in GPS activity by Category',
+                id='mobility_demo_toggle')],
+                style={'width': '30%','float': 'right','display': 'inline-block'})
 
 ])
 
@@ -114,20 +70,11 @@ def make_side_graph(toggle_val, FIPS):
     Plot side graph based on toggle values
     '''
 
-    if toggle_val == 'Mobility':
-        return gf.create_mobility_graph(mobility, FIPS)
+    if toggle_val == 'Percent change in GPS activity by Category':
+        return gf.create_mobility_graph(mobility, zhvi_county_inc_pop, FIPS)
     
-    if toggle_val == 'Income':
+    if toggle_val == 'Distribution of Median Income and Poverty rate':
         return gf.create_income_graph(zhvi_county_inc_pop, FIPS)
-
-
-@app.callback(
-    Output('click-data', 'children'),
-    Input('zhvf', 'clickData'),
-    Input('mobility_demo_toggle', 'value'))
-def display_click_data(clickData, toggle):
-    #return str(toggle)
-    return json.dumps(str(clickData['points'][0]['location'] + " " + toggle), indent=2)
 
 
 @app.callback(
@@ -139,48 +86,19 @@ def update_graph_series(clickData, toggle):
     county = clickData['points'][0]['location']
     return make_side_graph(str(toggle), county)
 
-    '''
-    fig2 = go.Figure()
+'''
+html.Div([
+    dcc.Markdown(),
+    html.Pre(id='click-data', style=styles['pre'])], 
+    className='three columns')
 
-    fig2.add_trace(go.Scatter(
-        x= mobility[mobility["countyfips"] == county]["date"],
-        y= mobility[mobility["countyfips"] == county]["gps_parks"],
-        name = 'Parks', 
-        connectgaps=True
-    ))
-    fig2.add_trace(go.Scatter(
-        x= mobility[mobility["countyfips"] == county]["date"],
-        y= mobility[mobility["countyfips"] == county]["gps_retail_and_recreation"],
-        name = 'Retail and Recreation', 
-        connectgaps=True
-    ))
-    fig2.add_trace(go.Scatter(
-        x= mobility[mobility["countyfips"] == county]["date"],
-        y= mobility[mobility["countyfips"] == county]["gps_grocery_and_pharmacy"],
-        name = 'Grocery and Pharmacy',
-        connectgaps=True
-    ))
-    fig2.add_trace(go.Scatter(
-        x= mobility[mobility["countyfips"] == county]["date"],
-        y= mobility[mobility["countyfips"] == county]["gps_residential"],
-        name = 'Residential', 
-        connectgaps=True
-    ))
-    fig2.update_layout(legend=dict(
-        yanchor="bottom",
-        y= -0.75,
-        xanchor="left",
-        x=0.01
-    ))
-    fig2.add_annotation(x=0, y=0.85, xanchor='left', yanchor='bottom',
-                       xref='paper', yref='paper', showarrow=False, align='left',
-                       text=county)
-
-    fig2.update_layout(title="Percent change in GPS activity by Category")
-
-    return fig2
-    '''
-
+@app.callback(
+    Output('click-data', 'children'),
+    Input('zhvf', 'clickData'),
+    Input('mobility_demo_toggle', 'value'))
+def display_click_data(clickData, toggle):
+    return json.dumps(str(clickData['points'][0]['location'] + " " + toggle), indent=2)
+'''
 
 if __name__ == '__main__':
     app.run_server(debug=True)
