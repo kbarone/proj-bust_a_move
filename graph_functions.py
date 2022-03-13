@@ -187,3 +187,28 @@ def create_income_graph(zhvi_county_inc_pop, FIPS):
                                FIPS,'RegionName'].to_string().split(" ", 1)[-1]+\
                                "<br>" + 'blue line: median value'))
     return fig
+
+def create_pie_chart(zhvi_county_inc_pop, FIPS, race):
+    '''
+    Create pie chart of race distribution for a county
+
+    Inputs-
+    zhvi_county_inc_pop : (pandas dataframe) county level median income and poverty data
+    FIPS : (str) county FIPS code
+    race : (pandas dataframe) county level data on race distribution
+
+    Returns-
+    plotly graph object
+    '''
+
+    if len(race.loc[race["fips"] == FIPS]) == 0:
+        fig = px.pie(title='No race data for this selection')
+    
+    else:
+        fig = px.pie(race, values=race[race['fips']==FIPS]['perc_total'], names=race['race'].unique(),
+             title=str('Racial breakdown' + "-" + zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == \
+                               FIPS,'RegionName'].to_string().split(" ", 1)[-1])
+                )
+        fig.update_traces(textposition='inside', textinfo='percent')
+
+    return fig

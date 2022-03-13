@@ -26,22 +26,62 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     html.H1(
         children='Bust A Move!',
         style={
-            'textAlign': 'center',
+            'textAlign': 'left',
             'color': colors['text']
         }
     ),
 
     html.Div(children='Exploring Regional Mobility in the US\n', style={
-        'textAlign': 'center',
+        'textAlign': 'left',
+        'padding' : 5,
         'color': colors['text']
     }),
 
-
-    html.Div(children='Click on a county on the map to view mobility and demographic data.',
+    html.Div(children='''Our project explored the theory that the increasing availability 
+    of remote working opportunities, partly as a consequence of the pandemic, 
+    has led to migrations from major cities to smaller cities and towns in the western US 
+    that are located close to nature/national parks. 
+    Using historical housing price data as a proxy for recent regional mobility, 
+    we were able to create a visualization that matches our theory and confirms 
+    information in other news stories and research on this theory. ''',
     style={
-        'textAlign': 'center',
-        'color': colors['text']
+        'textAlign': 'left',
+        'color': colors['text'],
+        'width' : '98%',
+        'padding' :5
     }),
+
+    html.Div(children='''Specifically, we plotted the change in estimated housing prices from 2019-2021 (using data from Zillow)
+    to identify counties where the housing prices were on the rise (the redder counties). Our theory is that these 
+    are the same counties that experienced
+    inward migration from larger cities. We also think that these counties are closer to national parks/nature (black points on 
+    the map). We show the race distribution of the selected county, a histogram of median income, 
+    percent of the population in poverty, and where
+    the currently selected county lies in this range. Additionally, we show the change in mobility across time for different types
+    of activities within the selected county, using GPS activity from Google (this shows the change compared to the median value 
+    from the 5-week baseline period Jan 3-Feb 6, 2020).''',
+    style={
+        'textAlign': 'left',
+        'color': colors['text'],
+        'width' : '98%',
+        'padding' : 5
+    }),
+
+    html.Div(children='Click on a county on the map and use the toggle to view mobility and demographic data.',
+    style={
+        'textAlign': 'left',
+        'color': colors['text'],
+        'padding' :10, 'display' : 'inline-block'
+    }),
+
+    html.Div([
+            dcc.Dropdown(
+                ['Percent change in GPS activity by Category',
+                'Distribution of Median Income and Poverty rate',
+                'Race Distribution'],
+                'Distribution of Median Income and Poverty rate',
+                id='mobility_demo_toggle')],
+                style={'width': '30%','float': 'right','display': 'inline-block'}),
 
     html.Div([
         dcc.Graph(
@@ -52,16 +92,8 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
 
     html.Div([dcc.Graph(
                 id='mobility_demo',)],
-                style={'width': '45%','display': 'inline-block'}),
+                style={'width': '45%','display': 'inline-block'})
     
-
-    html.Div([
-            dcc.Dropdown(
-                ['Percent change in GPS activity by Category',
-                'Distribution of Median Income and Poverty rate'],
-                'Percent change in GPS activity by Category',
-                id='mobility_demo_toggle')],
-                style={'width': '30%','float': 'right','display': 'inline-block'})
 
 ])
 
@@ -71,10 +103,13 @@ def make_side_graph(toggle_val, FIPS):
     '''
 
     if toggle_val == 'Percent change in GPS activity by Category':
-        return gf.create_mobility_graph(mobility, zhvi_county_inc_pop, FIPS)
+        return gf.create_mobility_graph2(mobility, zhvi_county_inc_pop, FIPS)
     
     if toggle_val == 'Distribution of Median Income and Poverty rate':
         return gf.create_income_graph(zhvi_county_inc_pop, FIPS)
+    
+    if toggle_val == 'Race Distribution':
+        return gf.create_pie_chart(zhvi_county_inc_pop, FIPS, race)
 
 
 @app.callback(

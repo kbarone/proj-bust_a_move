@@ -32,6 +32,10 @@ population = pd.read_csv("county_population.csv", encoding = "ISO-8859-1", dtype
 # Parks
 natl_parks = pd.read_csv("natl_parks.csv")
 
+# Race
+race = pd.read_csv("data/race_data_clean.csv",dtype={'fips': object})
+race["fips"] = race["fips"].str.zfill(5)
+
 population["STATE"] = population["STATE"].str.zfill(2)
 population["COUNTY"] = population["COUNTY"].str.zfill(3)
 population["COUNTY_FIPS"] = population["STATE"] + population["COUNTY"]
