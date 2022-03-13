@@ -77,6 +77,9 @@ for idx, row in zhvi_county_inc_pop.iterrows():
     '<br>' + '2019-21 increase:' + str(round(row["2021_2yr_increase"], 3)) + '<br>' + 'Med_Inc:' + str(row["med_inc"]) + \
         '<br>' + 'Pop_2020:' + str(row["POPESTIMATE2020"])
 
+med_pov = zhvi_county_inc_pop['pov_rate'].median()
+med_inc = zhvi_county_inc_pop['med_inc'].median()
+
 zhvi_county_inc_pop['house_pov_ind'] = ((zhvi_county_inc_pop['pov_rate']>= med_pov) \
                                          | (zhvi_county_inc_pop['med_inc']<= med_inc)) \
                                          & (zhvi_county_inc_pop['2021_2yr_increase'] >= 30)
