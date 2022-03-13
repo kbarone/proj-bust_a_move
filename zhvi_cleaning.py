@@ -84,7 +84,7 @@ zhvi_county_inc_pop['house_pov_ind'] = ((zhvi_county_inc_pop['pov_rate']>= med_p
                                          | (zhvi_county_inc_pop['med_inc']<= med_inc)) \
                                          & (zhvi_county_inc_pop['2021_2yr_increase'] >= 30)
     
-
+zhvi_county_inc_pop['opacity'] = zhvi_county_inc_pop['house_pov_ind'].apply(lambda x: 1 if x==True else 0.2)
 
 #--------MOBILITY---------------#
 
