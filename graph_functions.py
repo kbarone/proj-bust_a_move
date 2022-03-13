@@ -112,8 +112,9 @@ def create_mobility_graph(mobility, zhvi_county_inc_pop, FIPS):
 
 def create_mobility_graph2(mobility, zhvi_county_inc_pop, FIPS):
     df = mobility[mobility["countyfips"] == FIPS]
-    fig = px.scatter(df, x="date", y=["gps_parks", "gps_retail_and_recreation", "gps_grocery_and_pharmacy"], trendline="expanding", title="Expanding mean", 
-        labels = {"gps_parks" : "Parks", "gps_retail_and_recreation": "Retail and Recreation", "gps_grocery_and_pharmacy" : "Grocery and Pharmacy"})
+    df = df.rename({"gps_parks" : "Parks", "gps_retail_and_recreation": "Retail and Recreation", "gps_grocery_and_pharmacy" : "Grocery and Pharmacy"}, axis=1)
+    fig = px.scatter(df, x="date", y=["Parks", "Retail and Recreation", "Grocery and Pharmacy"], trendline="expanding", labels = {"variable": "Type of Activity"})
+
     fig.update_traces(showlegend=True) 
     fig.update_traces(visible=False, selector=dict(mode="markers"))
     fig.update_layout(legend=dict(
@@ -122,17 +123,15 @@ def create_mobility_graph2(mobility, zhvi_county_inc_pop, FIPS):
         xanchor="left",
         x=0.01
     ))
-    fig.add_annotation(x=0, y=1.10, xanchor='left', yanchor='bottom',
+    fig.add_annotation(x=0, y=0.85, xanchor='left', yanchor='bottom',
                        xref='paper', yref='paper', showarrow=False, align='left',
                        text=str(FIPS +\
                            zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == \
                                FIPS,'RegionName'].to_string().split(" ", 1)[-1]))
-    fig.add_annotation(x=0, y=0.85, xanchor='left', yanchor='bottom',
-                       xref='paper', yref='paper', showarrow=False, align='left',
-                       text= zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] ==
-                               FIPS,'RegionName'])
 
     fig.update_layout(title="Percent change in GPS activity by Category")
+
+    return fig
 
 
 def create_income_graph(zhvi_county_inc_pop, FIPS):
