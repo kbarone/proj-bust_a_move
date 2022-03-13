@@ -162,7 +162,7 @@ def create_income_graph(zhvi_county_inc_pop, FIPS):
                         y0=0.0, 
                         x1=float(zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == FIPS, 'med_inc']),
                         y1=200,
-                        line={'dash': 'dash', 'color':'black'}), row=1, col=1)
+                        line={'dash': 'solid', 'color':'black'}), row=1, col=1)
 
     # pov_rate
     fig.add_trace(go.Histogram(x=zhvi_county_inc_pop["pov_rate"], name="Poverty rate"), 2, 1)
@@ -178,11 +178,11 @@ def create_income_graph(zhvi_county_inc_pop, FIPS):
                         x0=float(zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == FIPS, 'pov_rate']), y0=0.0, 
                         x1=float(zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == FIPS, 'pov_rate']),
                         y1=140,
-                        line={'dash': 'dash', 'color':'black'}), row=2, col=1)
+                        line={'dash': 'solid', 'color':'black'}), row=2, col=1)
     
     fig.add_annotation(x=0, y=1.0, xanchor='left', yanchor='bottom',
                        xref='paper', yref='paper', showarrow=False, align='left',
-                       text=str('black dashed line: ' + FIPS+\
+                       text=str('black line: ' + FIPS+\
                            zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == \
                                FIPS,'RegionName'].to_string().split(" ", 1)[-1]+\
                                "<br>" + 'blue line: median value'))
