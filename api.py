@@ -35,13 +35,13 @@ mashvisor6 = "https://api.mashvisor.com/v1.1/client/neighborhood/7877/historical
 
 census1 = "https://api.census.gov/data/2019/acs/acs1?get=NAME,B01001_001E&for=county:*&in=state:*&key=2a3bf1bd5b110158358335717d5d067b0e377810"
 
-census2 = "https://api.census.gov/data/timeseries/poverty/saipe?get=SAEMHI_PT,NAME&for=county:*&in=state:*&time=2020&key=2a3bf1bd5b110158358335717d5d067b0e377810"
+census2 = "https://api.census.gov/data/timeseries/poverty/saipe?get=SAEMHI_PT,SAEPOVRTALL_PT,NAME&for=county:*&in=state:*&time=2020&key=2a3bf1bd5b110158358335717d5d067b0e377810"
 
-rawData = pd.read_csv(io.StringIO(response.decode('utf-8')))
-rawData = rawData.rename(columns= {'[["SAEMHI_PT"':"med_inc","NAME":"county","county]":"fips_county"})
+rawData = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
+rawData = rawData.rename(columns= {'[["SAEMHI_PT"':"med_inc","SAEPOVRTALL_PT" : "pov_rate","NAME":"county","county]":"fips_county"})
 df = rawData.copy()
-df = df.iloc[:,:5]
-df['med_inc'] = df['med_inc'].str.replace("[","")
+#df = df.iloc[:,:5]
+#df['med_inc'] = df['med_inc'].str.replace("[","")
 
 cols_to_fix = ["med_inc", "fips_county"]
 for col in cols_to_fix:
