@@ -53,64 +53,7 @@ def create_chloropleth(counties, zhvi_county_inc_pop, natl_parks):
     return fig
 
 
-
-
-def create_mobility_graph(mobility, zhvi_county_inc_pop, FIPS): 
-    """
-    Creates a time series graph for a specific FIPS code showing the
-    various google mobility metrics for that county
-
-    Inputs: 
-        mobility (pandas dataframe) - mobility dataset
-        FIPS (str) - county FIPS code
-
-    Returns: 
-        plotly graph object
-    """
-
-    fig = go.Figure()
-
-    fig.add_trace(go.Scatter(
-        x= mobility[mobility["countyfips"] == FIPS]["date"],
-        y= mobility[mobility["countyfips"] == FIPS]["gps_parks"],
-        name = 'Mobility near parks',
-        connectgaps = True
-    ))
-    fig.add_trace(go.Scatter(
-        x= mobility[mobility["countyfips"] == FIPS]["date"],
-        y= mobility[mobility["countyfips"] == FIPS]["gps_retail_and_recreation"],
-        name = 'Mobility near retail and recreation',
-        connectgaps = True
-    ))
-    fig.add_trace(go.Scatter(
-        x= mobility[mobility["countyfips"] == FIPS]["date"],
-        y= mobility[mobility["countyfips"] == FIPS]["gps_grocery_and_pharmacy"],
-        name = 'Mobility -grocery and pharmacy',
-        connectgaps = True
-    ))
-    fig.add_trace(go.Scatter(
-        x= mobility[mobility["countyfips"] == FIPS]["date"],
-        y= mobility[mobility["countyfips"] == FIPS]["gps_residential"],
-        name = 'Mobility -residential',
-        connectgaps = True
-    ))
-
-    fig.add_annotation(x=0, y=1.10, xanchor='left', yanchor='bottom',
-                       xref='paper', yref='paper', showarrow=False, align='left',
-                       text=str(FIPS +\
-                           zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == \
-                               FIPS,'RegionName'].to_string().split(" ", 1)[-1]))
-
-    fig.update_layout(legend=dict(
-        yanchor="bottom",
-        y= -0.75,
-        xanchor="left",
-        x=0.01
-    ))
-
-    return fig
-
-def create_mobility_graph2(mobility, zhvi_county_inc_pop, FIPS):
+def create_mobility_graph(mobility, zhvi_county_inc_pop, FIPS):
     df = mobility[mobility["countyfips"] == FIPS]
     df = df.rename({"gps_parks" : "Parks", "gps_retail_and_recreation": "Retail and Recreation", "gps_grocery_and_pharmacy" : "Grocery and Pharmacy"}, axis=1)
     fig = px.scatter(df, x="date", y=["Parks", "Retail and Recreation", "Grocery and Pharmacy"], trendline="expanding", labels = {"variable": "Type of Activity"})
@@ -210,5 +153,7 @@ def create_pie_chart(zhvi_county_inc_pop, FIPS, race):
                                FIPS,'RegionName'].to_string().split(" ", 1)[-1])
                 )
         fig.update_traces(textposition='inside', textinfo='percent')
+
+        
 
     return fig

@@ -103,7 +103,7 @@ def make_side_graph(toggle_val, FIPS):
     '''
 
     if toggle_val == 'Percent change in GPS activity by Category':
-        return gf.create_mobility_graph2(mobility, zhvi_county_inc_pop, FIPS)
+        return gf.create_mobility_graph(mobility, zhvi_county_inc_pop, FIPS)
     
     if toggle_val == 'Distribution of Median Income and Poverty rate':
         return gf.create_income_graph(zhvi_county_inc_pop, FIPS)
