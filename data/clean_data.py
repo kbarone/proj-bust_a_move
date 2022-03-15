@@ -257,9 +257,13 @@ crosswalk = "raw/CountyCrossWalk_Zillow.csv"
 population = "raw/county_population.csv"
 
 housing_inc_pov_data = housing_pop_inc_pov(zillow, crosswalk, population)
-housing_inc_pov_data.to_csv("zhvi_county_inc_pop_clean.csv")
+housing_inc_pov_data.to_csv("clean/zhvi_county_inc_pop_clean.csv")
 
 race_data = clean_race_data("raw/race_by_county.csv")
+race_data.to_csv("clean/race_data_clean.csv")
+
+mobility = clean_mobility_data("raw/google_mobility_county.csv")
+mobility.csv("clean/mobility_data_clean.csv")
 
 
 
