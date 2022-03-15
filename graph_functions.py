@@ -25,11 +25,7 @@ def create_chloropleth(counties, zhvi_county_inc_pop, natl_parks):
                                     z=zhvi_county_inc_pop["2021_2yr_increase"],
                                     colorscale="Jet", zmin=-17, zmax=58, text=zhvi_county_inc_pop["text_2yrs"], 
                                     marker_opacity=0.5, marker_line_width=0))
-    fig.update_layout(mapbox_style="carto-positron", # style options: "basic", "streets", "outdoors", 
-                # "dark", "satellite", or "satellite-streets","light"
-                # "open-street-map", "carto-positron", 
-                # "carto-darkmatter", "stamen-terrain", 
-                # "stamen-toner" or "stamen-watercolor"
+    fig.update_layout(mapbox_style="carto-positron", 
                   mapbox_zoom=3, mapbox_center = {"lat": 37.0902, "lon": -95.7129})
     fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
     fig.update_layout(
@@ -56,7 +52,8 @@ def create_chloropleth(counties, zhvi_county_inc_pop, natl_parks):
 def create_mobility_graph(mobility, zhvi_county_inc_pop, FIPS):
     df = mobility[mobility["countyfips"] == FIPS]
     df = df.rename({"gps_parks" : "Parks", "gps_retail_and_recreation": "Retail and Recreation", "gps_grocery_and_pharmacy" : "Grocery and Pharmacy"}, axis=1)
-    fig = px.scatter(df, x="date", y=["Parks", "Retail and Recreation", "Grocery and Pharmacy"], trendline="expanding", labels = {"variable": "Type of Activity"})
+    fig = px.scatter(df, x="date", y=["Parks", "Retail and Recreation", "Grocery and Pharmacy"], trendline="expanding",
+        labels = {"variable": "Type of Activity", "date":"Date", "value": "% Change"})
 
     fig.update_traces(showlegend=True) 
     fig.update_traces(visible=False, selector=dict(mode="markers"))
@@ -92,37 +89,39 @@ def create_income_graph(zhvi_county_inc_pop, FIPS):
 
     fig = make_subplots(rows=2, cols=1)
 
-    fig.add_trace(go.Histogram(x=zhvi_county_inc_pop["med_inc"], name="Median income"), 1, 1)
-    fig.add_shape(
-        go.layout.Shape(type='line', xref='x',
-                        x0=np.median(zhvi_county_inc_pop.med_inc), y0=0.0, 
-                        x1=np.median(zhvi_county_inc_pop.med_inc),
-                        y1=200,
-                        line={'dash': 'dash', 'color':'blue'}), row=1, col=1)
-    fig.add_shape(
-        go.layout.Shape(type='line', xref='x',
-                        x0=float(zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == FIPS, 'med_inc']),
-                        y0=0.0, 
-                        x1=float(zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == FIPS, 'med_inc']),
-                        y1=200,
-                        line={'dash': 'solid', 'color':'black'}), row=1, col=1)
+    def create_histogram(fig, col, name, y, position): 
+        """
+        Creates a histogram for a specific column in data
 
-    # pov_rate
-    fig.add_trace(go.Histogram(x=zhvi_county_inc_pop["pov_rate"], name="Poverty rate"), 2, 1)
-    fig.add_shape(
-        go.layout.Shape(type='line', xref='x',
-                        x0=np.median(zhvi_county_inc_pop.pov_rate), 
-                        y0=0.0,
-                        x1=np.median(zhvi_county_inc_pop.pov_rate),
-                        y1=140,
-                        line={'dash': 'dash', 'color':'blue'}), row=2, col=1)
-    fig.add_shape(
-        go.layout.Shape(type='line', xref='x',
-                        x0=float(zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == FIPS, 'pov_rate']), y0=0.0, 
-                        x1=float(zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == FIPS, 'pov_rate']),
-                        y1=140,
-                        line={'dash': 'solid', 'color':'black'}), row=2, col=1)
-    
+        Inputs: 
+            figure
+            col (string)
+            name (string) - Name for graph
+            position (int) position in subplot
+        
+        """
+        fig.add_trace(go.Histogram(x=zhvi_county_inc_pop[col], name=name), position, 1)
+
+        fig.add_shape(
+            go.layout.Shape(type='line', xref='x',
+                        x0=np.median(zhvi_county_inc_pop[col]), y0=0.0, 
+                        x1=np.median(zhvi_county_inc_pop[col]),
+                        y1=y,
+                        line={'dash': 'dash', 'color':'blue'}), row=position, col=1)
+        fig.add_shape(
+            go.layout.Shape(type='line', xref='x',
+                        x0=float(zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == FIPS, col]),
+                        y0=0.0, 
+                        x1=float(zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == FIPS, col]),
+                        y1=y,
+                        line={'dash': 'solid', 'color':'black'}), row=position, col=1)
+        
+        return fig
+
+
+    fig = create_histogram(fig, "med_inc", "Median Income", 200, 1)
+    fig = create_histogram(fig, "pov_rate", "Poverty Rate", 140, 2)
+ 
     fig.add_annotation(x=0, y=1.0, xanchor='left', yanchor='bottom',
                        xref='paper', yref='paper', showarrow=False, align='left',
                        text=str('black line: ' + FIPS+\
@@ -149,11 +148,29 @@ def create_pie_chart(zhvi_county_inc_pop, FIPS, race):
     
     else:
         fig = px.pie(race, values=race[race['fips']==FIPS]['perc_total'], names=race['race'].unique(),
-             title=str('Racial breakdown' + "-" + zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == \
+             title=str('Racial breakdown' + ": " + zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == \
                                FIPS,'RegionName'].to_string().split(" ", 1)[-1])
                 )
         fig.update_traces(textposition='inside', textinfo='percent')
 
-        
+        def new_legend(fig, new_names):
+            """
+            Updates legend names
+            """
 
+            for name in new_names:
+                for i, label in enumerate(fig.data[0].labels):
+                    if label == name:
+                        fig.data[0].labels[i] = new_names[label]
+            return(fig)
+
+        fig = new_legend(fig = fig, new_names = {'perc_white':'White',
+                                       'perc_two_or_more' : 'Two or more races',
+                                       'perc_am_indian_alas_nat': "American Indian and Alaska Native",
+                                       "perc_blk_af_am": "Black or African American",
+                                       'perc_asian': "Asian",
+                                       'perc_other': 'Other',
+                                       'perc_nat_haw_pac_island': 'Native Hawaiian and Other Pacific Islander'
+                                       })
+                                       
     return fig
