@@ -8,7 +8,8 @@ from urllib.request import urlopen
 import json
 with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
     counties = json.load(response)
-# Load datasets
+
+#--------------------Load datasets--------------------------------#
 
 # Zillow house prices
 zhvi = pd.read_csv("zillow_home_value_index_county.csv", index_col="RegionID")
@@ -26,7 +27,7 @@ population = pd.read_csv("county_population.csv", encoding = "ISO-8859-1", dtype
 mobility = pd.read_csv("google_mobility_county.csv", dtype= {"countyfips": str})
 
 # Race data
-race = pd.read_csv("/Users/katybarone/Documents/uchicago/race_by_county.csv")
+race = pd.read_csv("race_by_county.csv")
 
 
 #--------    MOBILITY   ---------------#
