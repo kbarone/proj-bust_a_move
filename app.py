@@ -44,14 +44,6 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
         }
     ),
 
-    html.Div(children='Exploring Regional Mobility in the US\n', style={
-        'textAlign': 'left',
-        'padding' : 5,
-        'color': colors['text']
-    }),
-    html.P("See 'high risk' counties:"),
-    
-
     html.Div(children='''Our project explored the theory that the increasing availability 
     of remote working opportunities, partly as a consequence of the pandemic, 
     has led to migrations from major cities to smaller cities and towns in the western US 
@@ -69,8 +61,10 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     html.Div(children='''Specifically, we plotted the change in estimated housing prices from 2019-2021 (using data from Zillow)
     to identify counties where the housing prices were on the rise (the redder counties). Our theory is that these 
     are the same counties that experienced
-    inward migration from larger cities. We also think that these counties are closer to national parks/nature (black points on 
-    the map). We show the race distribution of the selected county, a histogram of median income, 
+    inward migration from larger cities. We also think that these counties are closer to national parks/nature (green points on 
+    the map). We identified "High Risk" counties as those which experienced a change in housing prices greater than 25 percent and have low income
+    or high poverty rate (relative to the median of the country). The map can either highlight the high risk counties, or show the full map at the same opacity.
+    We show the race distribution of the selected county, a histogram of median income, 
     percent of the population in poverty, and where
     the currently selected county lies in this range. Additionally, we show the change in mobility across time for different types
     of activities within the selected county, using GPS activity from Google (this shows the change compared to the median value 
@@ -94,7 +88,8 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                 value='High Risk',
                 id='Filt',
                 inline=True,
-                style={'width': '45%', 'display':'inline-block'}
+                style={'width': '50%', 'display':'inline-block'}
+                #45
                 ),
             dcc.Dropdown(
                 ['Percent change in GPS activity by Category',
@@ -103,6 +98,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                 'Distribution of Median Income and Poverty rate',
                 id='mobility_demo_toggle' ,
                 style={'width': '50%', 'display':'inline-block'})]),
+                #50
 
     html.Div([
         
@@ -136,6 +132,9 @@ def make_side_graph(toggle_val, FIPS):
     Input('Filt', 'value'),
     Input('zhvf', 'clickData'))
 def update_map(Filt, clickData):
+    '''
+    Updates chloropleth map based on "Full Map" or "High Risk" toggle
+    '''
     if str(Filt) == 'High Risk':
         opacity = True
     else:

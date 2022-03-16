@@ -32,11 +32,7 @@ def create_chloropleth(counties, zhvi_county_inc_pop, natl_parks, opacity = Fals
                                     z=zhvi_county_inc_pop["2021_2yr_increase"],
                                     colorscale="Inferno_r", zmin=-17, zmax=58, text=zhvi_county_inc_pop["text_2yrs"], 
                                     marker_opacity=opac, marker_line_width=0))
-    fig.update_layout(mapbox_style="carto-positron", # style options: "basic", "streets", "outdoors", 
-                # "dark", "satellite", or "satellite-streets","light"
-                # "open-street-map", "carto-positron", 
-                # "carto-darkmatter", "stamen-terrain", 
-                # "stamen-toner" or "stamen-watercolor"
+    fig.update_layout(mapbox_style="carto-positron",
                   mapbox_zoom=3, mapbox_center = {"lat": 37.0902, "lon": -95.7129})
     fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
     fig.update_layout(
@@ -147,10 +143,10 @@ def create_income_graph(zhvi_county_inc_pop, FIPS):
  
     fig.add_annotation(x=0, y=1.0, xanchor='left', yanchor='bottom',
                        xref='paper', yref='paper', showarrow=False, align='left',
-                       text=str('black line: ' + FIPS+\
+                       text=str('Black Line: ' + FIPS+\
                            zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == \
                                FIPS,'RegionName'].to_string().split(" ", 1)[-1]+\
-                               "<br>" + 'blue line: median value'))
+                               "<br>" + 'Blue Line: Median Value for US'))
     return fig
 
 
