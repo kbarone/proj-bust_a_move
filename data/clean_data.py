@@ -19,8 +19,7 @@ def clean_med_pov():
     Returns : median income and poverty data pandas dataframe
     '''
 
-    call = '''https://api.census.gov/data/timeseries/poverty/saipe?get=SAEMHI_PT,SAEPOVRTALL_PT,
-                NAME&for=county:*&in=state:*&time=2020&key=2a3bf1bd5b110158358335717d5d067b0e377810'''
+    call = '''https://api.census.gov/data/timeseries/poverty/saipe?get=SAEMHI_PT,SAEPOVRTALL_PT,NAME&for=county:*&in=state:*&time=2020&key=2a3bf1bd5b110158358335717d5d067b0e377810'''
     
     print("Requesting poverty and income data from API...")
 
@@ -69,12 +68,13 @@ def clean_mobility_data(file):
     mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy", "gps_parks"]] = \
                 mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy", "gps_parks"]].apply(pd.to_numeric)
 
-    cols_to_check = ["date","countyfips","gps_retail_and_recreation", "gps_grocery_and_pharmacy","gps_parks"]
+    cols_to_check = ["date","countyfips","gps_retail_and_recreation", \
+        "gps_grocery_and_pharmacy","gps_parks"]
     mobi["countyfips"]= mobi["countyfips"].str.zfill(5)
     mobi["date"] = pd.to_datetime(mobi[["year", "month", "day"]])
     mobi = mobi[cols_to_check]
 
-    print("Google mobility data saved in clean folder!")
+    print("Google mobility data saving.. in clean folder!")
 
     return mobi
 
@@ -198,7 +198,8 @@ def housing_pop_inc_pov(zillow, crosswalk, population):
     print("Loading and cleaning all of the required data....")
 
     zhvi = pd.read_csv(zillow, index_col="RegionID")
-    crosswalk = pd.read_csv(crosswalk, encoding = "ISO-8859-1", index_col="CountyRegionID_Zillow", dtype={"FIPS" : object})
+    crosswalk = pd.read_csv(crosswalk, encoding = "ISO-8859-1", \
+        index_col="CountyRegionID_Zillow", dtype={"FIPS" : object})
     population = clean_pop_data(population)
     med_inc = clean_med_pov()
 
@@ -232,16 +233,22 @@ def housing_pop_inc_pov(zillow, crosswalk, population):
 
     # Format text for hovering
     for idx, row in zhvi_county_inc_pop.iterrows():
-        zhvi_county_inc_pop.at[idx, 'text_20'] = 'County: ' + row["RegionName"] + '<br>' + 'State: ' + row["State"] + \
-        '<br>' + '2019-20 increase: ' + '%' +str(round(row["2020_increase"], 3)) + '<br>' + 'Med_Inc: ' + '$' + str(row["med_inc"]) + \
+        zhvi_county_inc_pop.at[idx, 'text_20'] = 'County: ' + row["RegionName"] + \
+            '<br>' + 'State: ' + row["State"] + \
+            '<br>' + '2019-20 increase: ' + str(round(row["2020_increase"], 3)) + '%' + '<br>' + \
+            'Med_Inc: ' + '$' + str(row["med_inc"]) + \
             '<br>' + 'Pop_2019:' + str(row["POPESTIMATE2019"])
     
-        zhvi_county_inc_pop.at[idx, 'text_21'] = 'County: ' + row["RegionName"] + '<br>' + 'State: ' + row["State"] + \
-        '<br>' + '2020-21 increase: ' + '%' + str(round(row["2021_increase"], 3)) + '<br>' + 'Med_Inc: ' +  '$' + str(row["med_inc"]) + \
+        zhvi_county_inc_pop.at[idx, 'text_21'] = 'County: ' + row["RegionName"] + \
+            '<br>' + 'State: ' + row["State"] + \
+            '<br>' + '2020-21 increase: ' + str(round(row["2021_increase"], 3)) + '%' + '<br>' + \
+            'Med_Inc: ' +  '$' + str(row["med_inc"]) + \
             '<br>' + 'Pop_2020: ' + str(row["POPESTIMATE2020"])
     
-        zhvi_county_inc_pop.at[idx, 'text_2yrs'] = 'County: ' + row["RegionName"] + '<br>' + 'State: ' + row["State"] + \
-        '<br>' + '2019-21 increase: ' + '%' + str(round(row["2021_2yr_increase"], 3)) + '<br>' + 'Med_Inc: ' + '$' +  str(row["med_inc"]) + \
+        zhvi_county_inc_pop.at[idx, 'text_2yrs'] = 'County: ' + row["RegionName"] + \
+            '<br>' + 'State: ' + row["State"] + \
+            '<br>' + '2019-21 increase: ' + str(round(row["2021_2yr_increase"], 3)) + '%' + '<br>' + \
+            'Med_Inc: ' + '$' +  str(row["med_inc"]) + \
             '<br>' + 'Pop_2020: ' + str(row["POPESTIMATE2020"])
 
     median_pov = zhvi_county_inc_pop['pov_rate'].median()
@@ -253,8 +260,9 @@ def housing_pop_inc_pov(zillow, crosswalk, population):
     zhvi_county_inc_pop['opacity'] = zhvi_county_inc_pop['house_pov_ind'].apply(lambda x: 1 if x==True else 0.2)
 
     cols_to_keep = ['RegionName','State', 'Metro','FIPS',"2021_average","2020_average","2019_average",\
-        "2020_increase","2021_increase",'2021_2yr_increase','text_2yrs','text_20','text_21','med_inc', 'pov_rate','POPESTIMATE2020',\
-            'opacity']
+        "2020_increase","2021_increase",'2021_2yr_increase','text_2yrs','text_20',\
+            'text_21','med_inc', 'pov_rate','POPESTIMATE2020','opacity']
+
     zhvi_county_inc_pop = zhvi_county_inc_pop[cols_to_keep]
 
     zhvi_county_inc_pop['FIPS'] = zhvi_county_inc_pop['FIPS'].apply(str)
