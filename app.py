@@ -1,6 +1,18 @@
 from dash import Dash, html, dcc
 from dash.dependencies import Input, Output
 import graph_functions as gf
+import pandas as pd
+import json
+from urllib.request import urlopen
+
+# Load county shapefiles
+from urllib.request import urlopen
+import json
+
+# Load geojson
+with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
+    counties = json.load(response)
+
 
 
 app = Dash(__name__)
@@ -18,7 +30,38 @@ styles = {
 }
 
 # Running cleaning stuff
-exec(open("zhvi_cleaning.py").read())
+#exec(open("zhvi_cleaning.py").read())
+zhvi_county_inc_pop = pd.read_csv("data/clean/zhvi_county_inc_pop_clean.csv")
+zhvi_county_inc_pop['FIPS']=zhvi_county_inc_pop['FIPS'].apply(str)
+zhvi_county_inc_pop['FIPS'] = zhvi_county_inc_pop["FIPS"].str.zfill(5)
+# Parks
+natl_parks = pd.read_csv("natl_parks.csv")
+
+# Race
+race = pd.read_csv("data/clean/race_data_clean.csv")
+
+# Mobility
+def clean_mobility_data(file): 
+    """
+    Function to clean mobility data
+
+    Inputs :
+    file (str) : File path to mobility data
+
+    Returns : mobility data pandas dataframe
+    """
+    mobi = pd.read_csv(file, dtype= {"countyfips": str})
+    mobi = mobi.replace(["."], [None])
+    mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy",
+        "gps_parks", "gps_transit_stations", "gps_workplaces","gps_residential", "gps_away_from_home"]] = mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy",
+        "gps_parks", "gps_transit_stations", "gps_workplaces","gps_residential", "gps_away_from_home"]].apply(pd.to_numeric)
+
+    mobi["countyfips"]= mobi["countyfips"].str.zfill(5)
+    mobi["date"] = pd.to_datetime(mobi[["year", "month", "day"]])
+
+    return mobi
+
+mobility = clean_mobility_data("data/raw/google_mobility_county.csv")
 
 #----------------APP STARTS HERE---------------------#
 app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
@@ -78,7 +121,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     html.Div([
             dcc.RadioItems(
                 ['Full Map', 'High Risk'],
-                value='Full Map',
+                value='High Risk',
                 id='Filt',
                 inline=True,
                 style={'width': '15%'}
@@ -90,7 +133,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                 'Race Distribution'],
                 'Distribution of Median Income and Poverty rate',
                 id='mobility_demo_toggle')],
-                style={'width': '30%','float': 'right','display': 'inline-block'}),
+                style={'width': '30%', 'float':'right'}),
 
     html.Div([
         
@@ -98,11 +141,11 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
             id='zhvf',
             clickData={'points': [{'location': '30029'}]})],
             #figure=gf.create_chloropleth(counties, zhvi_county_inc_pop, natl_parks))], 
-            style={'width': '55%'}),
+            style={'width': '45%'}),
 
     html.Div([dcc.Graph(
                 id='mobility_demo',)],
-                style={'width': '45%','display': 'inline-block'})
+                style={'width': '40%', 'display':'inline-block', 'float':'right'})
     
 ])
 

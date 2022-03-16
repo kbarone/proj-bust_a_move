@@ -20,13 +20,13 @@ with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-c
 zhvi = pd.read_csv("raw/zillow_home_value_index_county.csv", index_col="RegionID")
 
 # Median income and poverty rate
-med_inc_pov = pd.read_csv("census_2020_median_inc_and_poverty.csv", dtype={'state': object, 'fips_county': object})
+med_inc_pov = pd.read_csv("raw/census_2020_median_inc_and_poverty.csv", dtype={'state': object, 'fips_county': object})
 
 # Zillow RegionID to County FIPS code crosswalk
 crosswalk = pd.read_csv("raw/CountyCrossWalk_Zillow.csv", encoding = "ISO-8859-1", index_col="CountyRegionID_Zillow", dtype={"FIPS" : object})
 
 # Population estimates
-population = pd.read_csv("county_population.csv", encoding = "ISO-8859-1", dtype={"STATE" : object, "COUNTY" : object})
+population = pd.read_csv("raw/county_population.csv", encoding = "ISO-8859-1", dtype={"STATE" : object, "COUNTY" : object})
 
 # Mobility data
 mobility = pd.read_csv("raw/google_mobility_county.csv", dtype= {"countyfips": str})
@@ -232,17 +232,17 @@ def housing_pop_inc_pov(zillow, crosswalk, population):
 
     # Format text for hovering
     for idx, row in zhvi_county_inc_pop.iterrows():
-        zhvi_county_inc_pop.at[idx, 'text_20'] = 'County:' + row["RegionName"] + '<br>' + 'State:' + row["State"] + \
-        '<br>' + '2019-20 increase:' + str(round(row["2020_increase"], 3)) + '<br>' + 'Med_Inc:' + str(row["med_inc"]) + \
+        zhvi_county_inc_pop.at[idx, 'text_20'] = 'County: ' + row["RegionName"] + '<br>' + 'State: ' + row["State"] + \
+        '<br>' + '2019-20 increase: ' + '%' +str(round(row["2020_increase"], 3)) + '<br>' + 'Med_Inc: ' + '$' + str(row["med_inc"]) + \
             '<br>' + 'Pop_2019:' + str(row["POPESTIMATE2019"])
     
-        zhvi_county_inc_pop.at[idx, 'text_21'] = 'County:' + row["RegionName"] + '<br>' + 'State:' + row["State"] + \
-        '<br>' + '2020-21 increase:' + str(round(row["2021_increase"], 3)) + '<br>' + 'Med_Inc:' + str(row["med_inc"]) + \
-            '<br>' + 'Pop_2020:' + str(row["POPESTIMATE2020"])
+        zhvi_county_inc_pop.at[idx, 'text_21'] = 'County: ' + row["RegionName"] + '<br>' + 'State: ' + row["State"] + \
+        '<br>' + '2020-21 increase: ' + '%' + str(round(row["2021_increase"], 3)) + '<br>' + 'Med_Inc: ' +  '$' + str(row["med_inc"]) + \
+            '<br>' + 'Pop_2020: ' + str(row["POPESTIMATE2020"])
     
-        zhvi_county_inc_pop.at[idx, 'text_2yrs'] = 'County:' + row["RegionName"] + '<br>' + 'State:' + row["State"] + \
-        '<br>' + '2019-21 increase:' + str(round(row["2021_2yr_increase"], 3)) + '<br>' + 'Med_Inc:' + str(row["med_inc"]) + \
-            '<br>' + 'Pop_2020:' + str(row["POPESTIMATE2020"])
+        zhvi_county_inc_pop.at[idx, 'text_2yrs'] = 'County: ' + row["RegionName"] + '<br>' + 'State: ' + row["State"] + \
+        '<br>' + '2019-21 increase: ' + '%' + str(round(row["2021_2yr_increase"], 3)) + '<br>' + 'Med_Inc: ' + '$' +  str(row["med_inc"]) + \
+            '<br>' + 'Pop_2020: ' + str(row["POPESTIMATE2020"])
 
     cols_to_keep = ['RegionName','State', 'Metro','FIPS',"2021_average","2020_average","2019_average","2020_increase","2021_increase",'2021_2yr_increase','text_2yrs','text_20','text_21','med_inc', 'pov_rate','POPESTIMATE2020']
     zhvi_county_inc_pop = zhvi_county_inc_pop[cols_to_keep]
