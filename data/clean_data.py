@@ -1,40 +1,12 @@
 '''
-Functions to clean all datasets
+Functions to clean all of the raw datasets and save clean versions of these
 '''
 from unicodedata import numeric
 import requests
 import io
 import pandas as pd
 import numpy as np
-import json
-from urllib.request import urlopen
 
-# Load county shapefiles
-from urllib.request import urlopen
-import json
-with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
-    counties = json.load(response)
-
-#--------------------Load datasets--------------------------------#
-'''
-# Zillow house prices
-zhvi = pd.read_csv("raw/zillow_home_value_index_county.csv", index_col="RegionID")
-
-# Median income and poverty rate
-med_inc_pov = pd.read_csv("raw/census_2020_median_inc_and_poverty.csv", dtype={'state': object, 'fips_county': object})
-
-# Zillow RegionID to County FIPS code crosswalk
-crosswalk = pd.read_csv("raw/CountyCrossWalk_Zillow.csv", encoding = "ISO-8859-1", index_col="CountyRegionID_Zillow", dtype={"FIPS" : object})
-
-# Population estimates
-population = pd.read_csv("raw/county_population.csv", encoding = "ISO-8859-1", dtype={"STATE" : object, "COUNTY" : object})
-
-# Mobility data
-mobility = pd.read_csv("raw/google_mobility_county.csv", dtype= {"countyfips": str})
-
-# Race data
-race = pd.read_csv("race_by_county.csv")
-'''
 #------------MEDIAN INCOME AND POVERTY DATA FROM CENSUS API-----------------------#
 
 def clean_med_pov():
@@ -47,12 +19,16 @@ def clean_med_pov():
     Returns : median income and poverty data pandas dataframe
     '''
 
-    call = "https://api.census.gov/data/timeseries/poverty/saipe?get=SAEMHI_PT,SAEPOVRTALL_PT,NAME&for=county:*&in=state:*&time=2020&key=2a3bf1bd5b110158358335717d5d067b0e377810"
+    call = '''https://api.census.gov/data/timeseries/poverty/saipe?get=SAEMHI_PT,SAEPOVRTALL_PT,
+                NAME&for=county:*&in=state:*&time=2020&key=2a3bf1bd5b110158358335717d5d067b0e377810'''
+    
+    print("Requesting poverty and income data from API...")
 
     response = requests.get(call)
 
     rawData = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
-    rawData = rawData.rename(columns= {'[["SAEMHI_PT"':"med_inc","SAEPOVRTALL_PT" : "pov_rate","NAME":"county","county]":"fips_county"})
+    rawData = rawData.rename(columns= {'[["SAEMHI_PT"':"med_inc","SAEPOVRTALL_PT" : "pov_rate",\
+        "NAME":"county","county]":"fips_county"})
     med_inc = rawData.copy()
 
     cols_to_fix = ["med_inc", "fips_county"]
@@ -67,6 +43,8 @@ def clean_med_pov():
 
     med_inc["state"] = med_inc['state'].str.zfill(2)
     med_inc['County Code'] = med_inc["state"] + med_inc["fips_county"]
+
+    print("Income and poverty data retrieved!")
 
     return med_inc
 
@@ -83,6 +61,9 @@ def clean_mobility_data(file):
 
     Returns : mobility data pandas dataframe
     """
+
+    print("Cleaning Google mobility data....")
+
     mobi = pd.read_csv(file, dtype= {"countyfips": str})
     mobi = mobi.replace(["."], [None])
     mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy", "gps_parks"]] = \
@@ -93,6 +74,7 @@ def clean_mobility_data(file):
     mobi["date"] = pd.to_datetime(mobi[["year", "month", "day"]])
     mobi = mobi[cols_to_check]
 
+    print("Google mobility data saved in clean folder!")
 
     return mobi
 
@@ -131,6 +113,8 @@ def clean_race_data(file):
             'B02001_010M':	"moe_two_more_excl_other_three"}
 
     
+    print("Cleaning race distribution data...")
+
     race = pd.read_csv(file)
     race = race.rename(columns = cols)
     race = race.iloc[1:]
@@ -161,6 +145,8 @@ def clean_race_data(file):
     df_unpivoted.head()
     df_race = df_unpivoted[df_unpivoted['race']!= 'total']
     df_race = df_race[df_race['race'].str.contains("perc")]
+
+    print("Race data saved in clean folder!")
     
     return df_race
 
@@ -176,10 +162,15 @@ def clean_pop_data(file):
 
     Returns : population data pandas dataframe
     '''
+
+    print("Cleaning population data....")
+
     population = pd.read_csv(file, encoding = "ISO-8859-1", dtype={"STATE" : object, "COUNTY" : object})
     population["STATE"] = population["STATE"].str.zfill(2)
     population["COUNTY"] = population["COUNTY"].str.zfill(3)
     population["COUNTY_FIPS"] = population["STATE"] + population["COUNTY"]
+
+    print("Population data cleaned!")
 
     return population
 
@@ -203,6 +194,8 @@ def housing_pop_inc_pov(zillow, crosswalk, population):
     County level pandas dataframe with housing prices, median income, poverty rate and
     population
     '''
+
+    print("Loading and cleaning all of the required data....")
 
     zhvi = pd.read_csv(zillow, index_col="RegionID")
     crosswalk = pd.read_csv(crosswalk, encoding = "ISO-8859-1", index_col="CountyRegionID_Zillow", dtype={"FIPS" : object})
@@ -230,6 +223,8 @@ def housing_pop_inc_pov(zillow, crosswalk, population):
     zhvi2.dropna()
 
     # MERGES
+    print("Merging housing, income, poverty and population data...")
+
     zhvi_county = pd.merge(zhvi2, crosswalk, left_index=True, right_index=True)
     zhvi_county["FIPS"] = zhvi_county["FIPS"].str.zfill(5)
     zhvi_county_inc = pd.merge(zhvi_county, med_inc, left_on="FIPS", right_on="County Code")
@@ -273,6 +268,8 @@ def housing_pop_inc_pov(zillow, crosswalk, population):
                                          & (zhvi_county_inc_pop['2021_2yr_increase'] >= 25)
     
     zhvi_county_inc_pop['opacity'] = zhvi_county_inc_pop['house_pov_ind'].apply(lambda x: 1 if x==True else 0.2)
+
+    print("Housing, income and poverty data saved in clean folder!")
 
     return zhvi_county_inc_pop
 
