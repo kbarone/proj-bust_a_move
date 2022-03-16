@@ -108,19 +108,19 @@ def clean_race_data(file):
     cols = {'NAME':	'County',
             'B02001_001E': 'total',
             'B02001_001M':	'moe_total',
-            'B02001_002E':  'White',
+            'B02001_002E':  'white',
             'B02001_002M':	'moe_white',
-            'B02001_003E':	'Black/African-American',
+            'B02001_003E':	'blk_af_am',
             'B02001_003M':	'moe_blk_af_am',
-            'B02001_004E':	"American Indian Alaskan Native",
+            'B02001_004E':	"am_indian_alas_nat",
             'B02001_004M':	"moe_am_indian_alas_nat",
-            'B02001_005E':	"Asian",
+            'B02001_005E':	"asian",
             'B02001_005M':	"moe_asian",
-            'B02001_006E':	"Native Hawaiian Pacific Islander",
+            'B02001_006E':	"nat_haw_pac_island",
             'B02001_006M':	"moe_nat_haw_pac_island",
-            'B02001_007E':	"Other",
+            'B02001_007E':	"other",
             'B02001_007M':	"moe_other",
-            'B02001_008E':	"Two or More Races",
+            'B02001_008E':	"two_or_more",
             'B02001_008M':	"moe_two_or_more",
             'B02001_009E':	"two_more_inc_other",
             'B02001_009M':	"moe_two_more_inc_other",
@@ -142,13 +142,13 @@ def clean_race_data(file):
     race = race.drop('two_more_inc_other',1)
     race = race.drop('two_more_excl_other_three', 1)
 
-    cols_to_numeric = ['total', 'White', 'Black/African-American', 'American Indian Alaskan Native', 'Asian',
-       'Native Hawaiian Pacific Islander', 'Other', 'Two or More Races']
+    cols_to_numeric = ['total', 'white', 'blk_af_am', 'am_indian_alas_nat', 'asian',
+       'nat_haw_pac_island', 'other', 'two_or_more']
     for col in cols_to_numeric:
         race[col] = pd.to_numeric(race[col])
 
-    percs = ['White', 'Black/African-American', 'American Indian Alaskan Native', 'Asian',
-       'Native Hawaiian Pacific Islander', 'Other', 'Two or More Races']
+    percs = ['white', 'blk_af_am', 'am_indian_alas_nat', 'asian',
+       'nat_haw_pac_island', 'other', 'two_or_more']
 
     for p in percs:
         race[f'perc_{p}'] = race[p] / race['total']

@@ -4,6 +4,33 @@ import plotly.graph_objects as go
 import numpy as np
 from plotly.subplots import make_subplots
 
+
+'''
+Clean google data
+'''
+
+# Mobility
+def clean_mobility_data(file): 
+    """
+    Function to clean mobility data
+
+    Inputs :
+    file (str) : File path to mobility data
+
+    Returns : mobility data pandas dataframe
+    """
+    mobi = pd.read_csv(file, dtype= {"countyfips": str})
+    mobi = mobi.replace(["."], [None])
+    mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy",
+        "gps_parks", "gps_transit_stations", "gps_workplaces","gps_residential", "gps_away_from_home"]] = mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy",
+        "gps_parks", "gps_transit_stations", "gps_workplaces","gps_residential", "gps_away_from_home"]].apply(pd.to_numeric)
+
+    mobi["countyfips"]= mobi["countyfips"].str.zfill(5)
+    mobi["date"] = pd.to_datetime(mobi[["year", "month", "day"]])
+
+    return mobi
+
+
 '''
 Functions for all of the apps Graphs
 '''
@@ -140,6 +167,7 @@ def create_income_graph(zhvi_county_inc_pop, FIPS):
                                "<br>" + 'blue line: median value'))
     return fig
 
+
 def create_pie_chart(zhvi_county_inc_pop, FIPS, race):
     '''
     Create pie chart of race distribution for a county
@@ -162,6 +190,7 @@ def create_pie_chart(zhvi_county_inc_pop, FIPS, race):
                                FIPS,'RegionName'].to_string().split(" ", 1)[-1])
                 )
         fig.update_traces(textposition='inside', textinfo='percent')
+
 
         def new_legend(fig, new_names):
             """
