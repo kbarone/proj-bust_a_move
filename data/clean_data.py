@@ -1,6 +1,7 @@
 '''
 Functions to clean all datasets
 '''
+from unicodedata import numeric
 import requests
 import io
 import pandas as pd
@@ -61,7 +62,8 @@ def clean_med_pov():
         med_inc[col] = med_inc[col].str.replace("]","")
         med_inc[col] = med_inc[col].str.replace('"',"")
 
-    med_inc = med_inc.astype({"state": str, "fips_county": str}) 
+    med_inc = med_inc.replace('null', np.nan)
+    med_inc = med_inc.astype({"state": str, "fips_county": str, "med_inc": float}) 
 
     med_inc["state"] = med_inc['state'].str.zfill(2)
     med_inc['County Code'] = med_inc["state"] + med_inc["fips_county"]
@@ -81,7 +83,7 @@ def clean_mobility_data(file):
     Returns : mobility data pandas dataframe
     """
     mobi = pd.read_csv(file, dtype= {"countyfips": str})
-    mobi = mobi.replace(".", None)
+    mobi = mobi.replace('.', np.nan)
     mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy",
         "gps_parks", "gps_transit_stations", "gps_workplaces","gps_residential", "gps_away_from_home"]] = mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy",
         "gps_parks", "gps_transit_stations", "gps_workplaces","gps_residential", "gps_away_from_home"]].apply(pd.to_numeric)
@@ -244,7 +246,17 @@ def housing_pop_inc_pov(zillow, crosswalk, population):
         '<br>' + '2019-21 increase: ' + '%' + str(round(row["2021_2yr_increase"], 3)) + '<br>' + 'Med_Inc: ' + '$' +  str(row["med_inc"]) + \
             '<br>' + 'Pop_2020: ' + str(row["POPESTIMATE2020"])
 
-    cols_to_keep = ['RegionName','State', 'Metro','FIPS',"2021_average","2020_average","2019_average","2020_increase","2021_increase",'2021_2yr_increase','text_2yrs','text_20','text_21','med_inc', 'pov_rate','POPESTIMATE2020']
+    median_pov = zhvi_county_inc_pop['pov_rate'].median()
+    median_inc = zhvi_county_inc_pop['med_inc'].median()
+
+    zhvi_county_inc_pop['house_pov_ind'] = zhvi_county_inc_pop['2021_2yr_increase'] >= 30 & \
+        ((zhvi_county_inc_pop.pov_rate >= median_pov) | (zhvi_county_inc_pop.med_inc <= median_inc))
+    
+    zhvi_county_inc_pop['opacity'] = zhvi_county_inc_pop['house_pov_ind'].apply(lambda x: 1 if x==True else 0.2)
+
+    cols_to_keep = ['RegionName','State', 'Metro','FIPS',"2021_average","2020_average","2019_average",\
+        "2020_increase","2021_increase",'2021_2yr_increase','text_2yrs','text_20','text_21','med_inc', 'pov_rate','POPESTIMATE2020',\
+            'opacity']
     zhvi_county_inc_pop = zhvi_county_inc_pop[cols_to_keep]
 
     zhvi_county_inc_pop['FIPS'] = zhvi_county_inc_pop['FIPS'].apply(str)
@@ -274,8 +286,7 @@ housing_inc_pov_data.to_csv("clean/zhvi_county_inc_pop_clean.csv")
 race_data = clean_race_data("raw/race_by_county.csv")
 race_data.to_csv("clean/race_data_clean.csv")
 
-mobility = clean_mobility_data("raw/google_mobility_county.csv")
-mobility.csv("clean/mobility_data_clean.csv")
+
 
 
 
