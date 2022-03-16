@@ -21,12 +21,14 @@ def clean_mobility_data(file):
     """
     mobi = pd.read_csv(file, dtype= {"countyfips": str})
     mobi = mobi.replace(["."], [None])
-    mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy",
-        "gps_parks", "gps_transit_stations", "gps_workplaces","gps_residential", "gps_away_from_home"]] = mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy",
-        "gps_parks", "gps_transit_stations", "gps_workplaces","gps_residential", "gps_away_from_home"]].apply(pd.to_numeric)
+    mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy", "gps_parks"]] = \
+                mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy", "gps_parks"]].apply(pd.to_numeric)
 
+    cols_to_check = ["countyfips","gps_retail_and_recreation", "gps_grocery_and_pharmacy","gps_parks"]
     mobi["countyfips"]= mobi["countyfips"].str.zfill(5)
     mobi["date"] = pd.to_datetime(mobi[["year", "month", "day"]])
+    mobi = mobi[cols_to_check]
+
 
     return mobi
 
