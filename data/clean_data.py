@@ -73,6 +73,7 @@ def clean_med_pov():
 #--------    MOBILITY   ---------------#
 
 
+# Mobility
 def clean_mobility_data(file): 
     """
     Function to clean mobility data
@@ -83,13 +84,15 @@ def clean_mobility_data(file):
     Returns : mobility data pandas dataframe
     """
     mobi = pd.read_csv(file, dtype= {"countyfips": str})
-    mobi = mobi.replace('.', np.nan)
-    mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy",
-        "gps_parks", "gps_transit_stations", "gps_workplaces","gps_residential", "gps_away_from_home"]] = mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy",
-        "gps_parks", "gps_transit_stations", "gps_workplaces","gps_residential", "gps_away_from_home"]].apply(pd.to_numeric)
+    mobi = mobi.replace(["."], [None])
+    mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy", "gps_parks"]] = \
+                mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy", "gps_parks"]].apply(pd.to_numeric)
 
+    cols_to_check = ["date","countyfips","gps_retail_and_recreation", "gps_grocery_and_pharmacy","gps_parks"]
     mobi["countyfips"]= mobi["countyfips"].str.zfill(5)
     mobi["date"] = pd.to_datetime(mobi[["year", "month", "day"]])
+    mobi = mobi[cols_to_check]
+
 
     return mobi
 
@@ -286,6 +289,8 @@ housing_inc_pov_data.to_csv("clean/zhvi_county_inc_pop_clean.csv")
 race_data = clean_race_data("raw/race_by_county.csv")
 race_data.to_csv("clean/race_data_clean.csv")
 
+mobility = clean_mobility_data("raw/google_mobility_county.csv")
+mobility.to_csv("clean/google_mobility_county_clean.csv")
 
 
 

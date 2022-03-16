@@ -1,15 +1,15 @@
+'''
+BUST A MOVE MAIN APPLICATION
+'''
+
 from dash import Dash, html, dcc
 from dash.dependencies import Input, Output
 import graph_functions as gf
 import pandas as pd
-import json
-from urllib.request import urlopen
 
 # Load county shapefiles
-from urllib.request import urlopen
 import json
-
-# Load geojson
+from urllib.request import urlopen
 with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
     counties = json.load(response)
 
@@ -31,8 +31,8 @@ styles = {
 zhvi_county_inc_pop = pd.read_csv("data/clean/zhvi_county_inc_pop_clean.csv", dtype={'FIPS': object})
 race = pd.read_csv("data/clean/race_data_clean.csv", dtype={'fips': object})
 natl_parks = pd.read_csv("data/clean/natl_parks.csv")
-#mobility = gf.clean_mobility_data("data/raw/google_mobility_county.csv")
-mobility = pd.read_csv("data/clean/google_mobility_county_clean.csv")
+mobility = pd.read_csv("data/clean/google_mobility_county_clean.csv", dtype={'countyfips': object}, parse_dates=['date'])
+
 #----------------APP STARTS HERE---------------------#
 app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
 
@@ -109,7 +109,6 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
         dcc.Graph(
             id='zhvf',
             clickData={'points': [{'location': '30029'}]})],
-            #figure=gf.create_chloropleth(counties, zhvi_county_inc_pop, natl_parks))], 
             style={'width': '55%', 'display':'inline-block'}),
 
     html.Div([dcc.Graph(
@@ -148,25 +147,9 @@ def update_map(Filt, clickData):
     Input('zhvf', 'clickData'),
     Input('mobility_demo_toggle', 'value'))
 def update_graph_series(clickData, toggle):
-    # Figure 2
     county = clickData['points'][0]['location']
     return make_side_graph(str(toggle), county)
 
-
-
-'''
-html.Div([
-    dcc.Markdown(),
-    html.Pre(id='click-data', style=styles['pre'])], 
-    className='three columns')
-
-@app.callback(
-    Output('click-data', 'children'),
-    Input('zhvf', 'clickData'),
-    Input('mobility_demo_toggle', 'value'))
-def display_click_data(clickData, toggle):
-    return json.dumps(str(clickData['points'][0]['location'] + " " + toggle), indent=2)
-'''
 
 if __name__ == '__main__':
     app.run_server(debug=True)

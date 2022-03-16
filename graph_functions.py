@@ -6,34 +6,6 @@ from plotly.subplots import make_subplots
 
 
 '''
-Clean google data
-'''
-
-# Mobility
-def clean_mobility_data(file): 
-    """
-    Function to clean mobility data
-
-    Inputs :
-    file (str) : File path to mobility data
-
-    Returns : mobility data pandas dataframe
-    """
-    mobi = pd.read_csv(file, dtype= {"countyfips": str})
-    mobi = mobi.replace(["."], [None])
-    mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy", "gps_parks"]] = \
-                mobi[["gps_retail_and_recreation", "gps_grocery_and_pharmacy", "gps_parks"]].apply(pd.to_numeric)
-
-    cols_to_check = ["countyfips","gps_retail_and_recreation", "gps_grocery_and_pharmacy","gps_parks"]
-    mobi["countyfips"]= mobi["countyfips"].str.zfill(5)
-    mobi["date"] = pd.to_datetime(mobi[["year", "month", "day"]])
-    mobi = mobi[cols_to_check]
-
-
-    return mobi
-
-
-'''
 Functions for all of the apps Graphs
 '''
 
@@ -89,6 +61,18 @@ def create_chloropleth(counties, zhvi_county_inc_pop, natl_parks, opacity = Fals
 
 
 def create_mobility_graph(mobility, zhvi_county_inc_pop, FIPS):
+    '''
+    Graphing google GPS mobility data
+
+    Inputs:
+    mobility : (str) path to raw google mobility data
+    zhvi_county_inc_pop : (pandas dataframe) county-level dataset of house prices, med income, poverty rate
+    FIPS : (str) county FIPS code
+
+    Returns:
+    plotly graph pbject
+    '''
+
     df = mobility[mobility["countyfips"] == FIPS]
     df = df.rename({"gps_parks" : "Parks", "gps_retail_and_recreation": "Retail and Recreation", "gps_grocery_and_pharmacy" : "Grocery and Pharmacy"}, axis=1)
     fig = px.scatter(df, x="date", y=["Parks", "Retail and Recreation", "Grocery and Pharmacy"], trendline="expanding",
