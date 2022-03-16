@@ -36,6 +36,8 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
         'padding' : 5,
         'color': colors['text']
     }),
+    html.P("See 'high risk' counties:"),
+    
 
     html.Div(children='''Our project explored the theory that the increasing availability 
     of remote working opportunities, partly as a consequence of the pandemic, 
@@ -71,9 +73,16 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     style={
         'textAlign': 'left',
         'color': colors['text'],
-        'padding' :10, 'display' : 'inline-block'
+        'padding' :10, 
     }),
-
+    html.Div([
+            dcc.RadioItems(
+                ['Full Map', 'High Risk'],
+                value='Full Map',
+                id='Filt',
+                inline=True,
+                style={'width': '15%'}
+                )]),
     html.Div([
             dcc.Dropdown(
                 ['Percent change in GPS activity by Category',
@@ -84,17 +93,17 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                 style={'width': '30%','float': 'right','display': 'inline-block'}),
 
     html.Div([
+        
         dcc.Graph(
             id='zhvf',
-            clickData={'points': [{'location': '30029'}]},
-            figure=gf.create_chloropleth(counties, zhvi_county_inc_pop, natl_parks))], 
-            style={'width': '55%','display': 'inline-block'}),
+            clickData={'points': [{'location': '30029'}]})],
+            #figure=gf.create_chloropleth(counties, zhvi_county_inc_pop, natl_parks))], 
+            style={'width': '55%'}),
 
     html.Div([dcc.Graph(
                 id='mobility_demo',)],
                 style={'width': '45%','display': 'inline-block'})
     
-
 ])
 
 def make_side_graph(toggle_val, FIPS):
@@ -111,6 +120,16 @@ def make_side_graph(toggle_val, FIPS):
     if toggle_val == 'Race Distribution':
         return gf.create_pie_chart(zhvi_county_inc_pop, FIPS, race)
 
+@app.callback(
+    Output('zhvf', 'figure'),
+    Input('Filt', 'value'),
+    Input('zhvf', 'clickData'))
+def update_map(Filt, clickData):
+    if str(Filt) == 'High Risk':
+        opacity = True
+    else:
+        opacity = False
+    return gf.create_chloropleth(counties, zhvi_county_inc_pop, natl_parks, opacity)
 
 @app.callback(
     Output('mobility_demo', 'figure'),
@@ -120,6 +139,8 @@ def update_graph_series(clickData, toggle):
     # Figure 2
     county = clickData['points'][0]['location']
     return make_side_graph(str(toggle), county)
+
+
 
 '''
 html.Div([

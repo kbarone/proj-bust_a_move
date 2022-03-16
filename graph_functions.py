@@ -8,7 +8,7 @@ from plotly.subplots import make_subplots
 Functions for all of the apps Graphs
 '''
 
-def create_chloropleth(counties, zhvi_county_inc_pop, natl_parks):
+def create_chloropleth(counties, zhvi_county_inc_pop, natl_parks, opacity = False):
     '''
     Main chloropleth map
 
@@ -21,10 +21,16 @@ def create_chloropleth(counties, zhvi_county_inc_pop, natl_parks):
     plotly chloropleth map
 
     '''
+    
+    if opacity:
+        opac = list(zhvi_county_inc_pop['opacity'])
+    else:
+        opac = 0.75
+
     fig = go.Figure(go.Choroplethmapbox(geojson=counties, locations=zhvi_county_inc_pop["FIPS"], \
                                     z=zhvi_county_inc_pop["2021_2yr_increase"],
-                                    colorscale="Jet", zmin=-17, zmax=58, text=zhvi_county_inc_pop["text_2yrs"], 
-                                    marker_opacity=0.5, marker_line_width=0))
+                                    colorscale="Inferno_r", zmin=-17, zmax=58, text=zhvi_county_inc_pop["text_2yrs"], 
+                                    marker_opacity=opac, marker_line_width=0))
     fig.update_layout(mapbox_style="carto-positron", # style options: "basic", "streets", "outdoors", 
                 # "dark", "satellite", or "satellite-streets","light"
                 # "open-street-map", "carto-positron", 
@@ -39,8 +45,8 @@ def create_chloropleth(counties, zhvi_county_inc_pop, natl_parks):
         lon= natl_parks['longitude'],
         mode ='markers',
         marker=go.scattermapbox.Marker(
-        size=6,
-        color = 'black'),
+        size=7,
+        color = 'green'),
         text = natl_parks["park_name"], hoverinfo = 'skip'))
     fig.update_layout(title={
         'text': "Percent Change in Housing Prices from 2019 to 2021",
