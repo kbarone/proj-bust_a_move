@@ -31,8 +31,8 @@ styles = {
 zhvi_county_inc_pop = pd.read_csv("data/clean/zhvi_county_inc_pop_clean.csv", dtype={'FIPS': object})
 race = pd.read_csv("data/clean/race_data_clean.csv", dtype={'fips': object})
 natl_parks = pd.read_csv("data/clean/natl_parks.csv")
-mobility = gf.clean_mobility_data("data/raw/google_mobility_county.csv")
-
+#mobility = gf.clean_mobility_data("data/raw/google_mobility_county.csv")
+mobility = pd.read_csv("data/clean/google_mobility_county_clean.csv")
 #----------------APP STARTS HERE---------------------#
 app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
 
