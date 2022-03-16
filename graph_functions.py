@@ -59,67 +59,11 @@ def create_chloropleth(counties, zhvi_county_inc_pop, natl_parks, opacity = Fals
     return fig
 
 
-
-
-def create_mobility_graph(mobility, zhvi_county_inc_pop, FIPS): 
-    """
-    Creates a time series graph for a specific FIPS code showing the
-    various google mobility metrics for that county
-
-    Inputs: 
-        mobility (pandas dataframe) - mobility dataset
-        FIPS (str) - county FIPS code
-
-    Returns: 
-        plotly graph object
-    """
-
-    fig = go.Figure()
-
-    fig.add_trace(go.Scatter(
-        x= mobility[mobility["countyfips"] == FIPS]["date"],
-        y= mobility[mobility["countyfips"] == FIPS]["gps_parks"],
-        name = 'Mobility near parks',
-        connectgaps = True
-    ))
-    fig.add_trace(go.Scatter(
-        x= mobility[mobility["countyfips"] == FIPS]["date"],
-        y= mobility[mobility["countyfips"] == FIPS]["gps_retail_and_recreation"],
-        name = 'Mobility near retail and recreation',
-        connectgaps = True
-    ))
-    fig.add_trace(go.Scatter(
-        x= mobility[mobility["countyfips"] == FIPS]["date"],
-        y= mobility[mobility["countyfips"] == FIPS]["gps_grocery_and_pharmacy"],
-        name = 'Mobility -grocery and pharmacy',
-        connectgaps = True
-    ))
-    fig.add_trace(go.Scatter(
-        x= mobility[mobility["countyfips"] == FIPS]["date"],
-        y= mobility[mobility["countyfips"] == FIPS]["gps_residential"],
-        name = 'Mobility -residential',
-        connectgaps = True
-    ))
-
-    fig.add_annotation(x=0, y=1.10, xanchor='left', yanchor='bottom',
-                       xref='paper', yref='paper', showarrow=False, align='left',
-                       text=str(FIPS +\
-                           zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == \
-                               FIPS,'RegionName'].to_string().split(" ", 1)[-1]))
-
-    fig.update_layout(legend=dict(
-        yanchor="bottom",
-        y= -0.75,
-        xanchor="left",
-        x=0.01
-    ))
-
-    return fig
-
-def create_mobility_graph2(mobility, zhvi_county_inc_pop, FIPS):
+def create_mobility_graph(mobility, zhvi_county_inc_pop, FIPS):
     df = mobility[mobility["countyfips"] == FIPS]
     df = df.rename({"gps_parks" : "Parks", "gps_retail_and_recreation": "Retail and Recreation", "gps_grocery_and_pharmacy" : "Grocery and Pharmacy"}, axis=1)
-    fig = px.scatter(df, x="date", y=["Parks", "Retail and Recreation", "Grocery and Pharmacy"], trendline="expanding", labels = {"variable": "Type of Activity"})
+    fig = px.scatter(df, x="date", y=["Parks", "Retail and Recreation", "Grocery and Pharmacy"], trendline="expanding",
+        labels = {"variable": "Type of Activity", "date":"Date", "value": "% Change"})
 
     fig.update_traces(showlegend=True) 
     fig.update_traces(visible=False, selector=dict(mode="markers"))
@@ -155,37 +99,39 @@ def create_income_graph(zhvi_county_inc_pop, FIPS):
 
     fig = make_subplots(rows=2, cols=1)
 
-    fig.add_trace(go.Histogram(x=zhvi_county_inc_pop["med_inc"], name="Median income"), 1, 1)
-    fig.add_shape(
-        go.layout.Shape(type='line', xref='x',
-                        x0=np.median(zhvi_county_inc_pop.med_inc), y0=0.0, 
-                        x1=np.median(zhvi_county_inc_pop.med_inc),
-                        y1=200,
-                        line={'dash': 'dash', 'color':'blue'}), row=1, col=1)
-    fig.add_shape(
-        go.layout.Shape(type='line', xref='x',
-                        x0=float(zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == FIPS, 'med_inc']),
-                        y0=0.0, 
-                        x1=float(zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == FIPS, 'med_inc']),
-                        y1=200,
-                        line={'dash': 'solid', 'color':'black'}), row=1, col=1)
+    def create_histogram(fig, col, name, y, position): 
+        """
+        Creates a histogram for a specific column in data
 
-    # pov_rate
-    fig.add_trace(go.Histogram(x=zhvi_county_inc_pop["pov_rate"], name="Poverty rate"), 2, 1)
-    fig.add_shape(
-        go.layout.Shape(type='line', xref='x',
-                        x0=np.median(zhvi_county_inc_pop.pov_rate), 
-                        y0=0.0,
-                        x1=np.median(zhvi_county_inc_pop.pov_rate),
-                        y1=140,
-                        line={'dash': 'dash', 'color':'blue'}), row=2, col=1)
-    fig.add_shape(
-        go.layout.Shape(type='line', xref='x',
-                        x0=float(zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == FIPS, 'pov_rate']), y0=0.0, 
-                        x1=float(zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == FIPS, 'pov_rate']),
-                        y1=140,
-                        line={'dash': 'solid', 'color':'black'}), row=2, col=1)
-    
+        Inputs: 
+            figure
+            col (string)
+            name (string) - Name for graph
+            position (int) position in subplot
+        
+        """
+        fig.add_trace(go.Histogram(x=zhvi_county_inc_pop[col], name=name), position, 1)
+
+        fig.add_shape(
+            go.layout.Shape(type='line', xref='x',
+                        x0=np.median(zhvi_county_inc_pop[col]), y0=0.0, 
+                        x1=np.median(zhvi_county_inc_pop[col]),
+                        y1=y,
+                        line={'dash': 'dash', 'color':'blue'}), row=position, col=1)
+        fig.add_shape(
+            go.layout.Shape(type='line', xref='x',
+                        x0=float(zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == FIPS, col]),
+                        y0=0.0, 
+                        x1=float(zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == FIPS, col]),
+                        y1=y,
+                        line={'dash': 'solid', 'color':'black'}), row=position, col=1)
+        
+        return fig
+
+
+    fig = create_histogram(fig, "med_inc", "Median Income", 200, 1)
+    fig = create_histogram(fig, "pov_rate", "Poverty Rate", 140, 2)
+ 
     fig.add_annotation(x=0, y=1.0, xanchor='left', yanchor='bottom',
                        xref='paper', yref='paper', showarrow=False, align='left',
                        text=str('black line: ' + FIPS+\
@@ -212,9 +158,29 @@ def create_pie_chart(zhvi_county_inc_pop, FIPS, race):
     
     else:
         fig = px.pie(race, values=race[race['fips']==FIPS]['perc_total'], names=race['race'].unique(),
-             title=str('Racial breakdown' + "-" + zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == \
+             title=str('Racial breakdown' + ": " + zhvi_county_inc_pop.loc[zhvi_county_inc_pop["FIPS"] == \
                                FIPS,'RegionName'].to_string().split(" ", 1)[-1])
                 )
         fig.update_traces(textposition='inside', textinfo='percent')
 
+        def new_legend(fig, new_names):
+            """
+            Updates legend names
+            """
+
+            for name in new_names:
+                for i, label in enumerate(fig.data[0].labels):
+                    if label == name:
+                        fig.data[0].labels[i] = new_names[label]
+            return(fig)
+
+        fig = new_legend(fig = fig, new_names = {'perc_white':'White',
+                                       'perc_two_or_more' : 'Two or more races',
+                                       'perc_am_indian_alas_nat': "American Indian and Alaska Native",
+                                       "perc_blk_af_am": "Black or African American",
+                                       'perc_asian': "Asian",
+                                       'perc_other': 'Other',
+                                       'perc_nat_haw_pac_island': 'Native Hawaiian and Other Pacific Islander'
+                                       })
+                                       
     return fig
