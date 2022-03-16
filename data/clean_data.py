@@ -247,6 +247,9 @@ def housing_pop_inc_pov(zillow, crosswalk, population):
     cols_to_keep = ['RegionName','State', 'Metro','FIPS',"2021_average","2020_average","2019_average","2020_increase","2021_increase",'2021_2yr_increase','text_2yrs','text_20','text_21','med_inc', 'pov_rate','POPESTIMATE2020']
     zhvi_county_inc_pop = zhvi_county_inc_pop[cols_to_keep]
 
+    med_pov = zhvi_county_inc_pop['pov_rate'].median()
+    med_inc = zhvi_county_inc_pop['med_inc'].median()   
+
     zhvi_county_inc_pop['house_pov_ind'] = ((zhvi_county_inc_pop['pov_rate']>= med_pov) \
                                          | (zhvi_county_inc_pop['med_inc']<= med_inc)) \
                                          & (zhvi_county_inc_pop['2021_2yr_increase'] >= 30)
